@@ -42,7 +42,7 @@ const TelegramPopup = () => {
   }, [onOpen]);
 
   const handleJoinClick = () => {
-    window.open('https://t.me/btwmetflix', '_blank');
+    window.open('https://t.me/crickflixx', '_blank');
     setHasClickedJoin(true);
   };
 
