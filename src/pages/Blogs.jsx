@@ -71,9 +71,14 @@ const BlogCard = ({ blog }) => {
               <Text>{blog.views || 0} views</Text>
             </HStack>
           </HStack>
-          <Text noOfLines={3} color={textColor}>
-            {blog.content}
-          </Text>
+          <Box
+            noOfLines={3}
+            color={textColor}
+            className="blog-preview"
+            dangerouslySetInnerHTML={{
+              __html: blog.content.replace(/<[^>]*>/g, '')
+            }}
+          />
         </VStack>
       </Box>
     </Link>

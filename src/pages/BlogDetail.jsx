@@ -153,15 +153,74 @@ const BlogDetail = () => {
             borderWidth="1px"
             borderColor={borderColor}
           >
-            <Text
+            <Box
               fontSize={{ base: "lg", md: "xl", lg: "2xl" }}
               lineHeight="tall"
               color={textColor}
-              whiteSpace="pre-wrap"
-              style={{ wordBreak: 'break-word' }}
-            >
-              {blog.content}
-            </Text>
+              className="blog-content"
+              dangerouslySetInnerHTML={{ __html: blog.content }}
+              sx={{
+                '& img': {
+                  maxWidth: '100%',
+                  height: 'auto',
+                  borderRadius: 'lg',
+                  my: 4
+                },
+                '& p': {
+                  mb: 4
+                },
+                '& h1, & h2, & h3, & h4, & h5, & h6': {
+                  mt: 6,
+                  mb: 4,
+                  fontWeight: 'bold'
+                },
+                '& ul, & ol': {
+                  pl: 6,
+                  mb: 4
+                },
+                '& li': {
+                  mb: 2
+                },
+                '& blockquote': {
+                  borderLeftWidth: '4px',
+                  borderLeftColor: 'gray.200',
+                  pl: 4,
+                  py: 2,
+                  my: 4,
+                  fontStyle: 'italic'
+                },
+                '& pre': {
+                  bg: 'gray.100',
+                  p: 4,
+                  borderRadius: 'md',
+                  overflowX: 'auto',
+                  mb: 4
+                },
+                '& code': {
+                  fontFamily: 'monospace',
+                  bg: 'gray.100',
+                  p: 1,
+                  borderRadius: 'sm'
+                },
+                '& table': {
+                  width: '100%',
+                  mb: 4,
+                  borderCollapse: 'collapse'
+                },
+                '& th, & td': {
+                  border: '1px solid',
+                  borderColor: 'gray.200',
+                  p: 2
+                },
+                '& a': {
+                  color: 'blue.500',
+                  textDecoration: 'underline',
+                  _hover: {
+                    color: 'blue.600'
+                  }
+                }
+              }}
+            />
           </Box>
         </Box>
       </Box>
