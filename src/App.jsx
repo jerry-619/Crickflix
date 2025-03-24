@@ -10,8 +10,6 @@ import Categories from './pages/Categories';
 import LiveMatches from './pages/LiveMatches';
 import Footer from './components/Footer';
 import { SocketProvider } from './context/SocketContext';
-import Routes from './Routes';
-import Layout from './components/Layout';
 
 const theme = extendTheme({
   config: {
@@ -41,7 +39,6 @@ const theme = extendTheme({
           bg: props.colorMode === 'dark' ? 'gray.500' : 'gray.400',
         },
       },
-      // Firefox scrollbar styling
       '*': {
         scrollbarWidth: 'thin',
         scrollbarColor: props.colorMode === 'dark' 
@@ -71,9 +68,17 @@ const App = () => {
     <ChakraProvider theme={theme}>
       <SocketProvider>
         <Router>
-          <Layout>
-            <Routes />
-          </Layout>
+          <Navbar />
+          <Routes>
+            <Route path="/" element={<Home />} />
+            <Route path="/blogs" element={<Blogs />} />
+            <Route path="/blogs/:slug" element={<BlogDetail />} />
+            <Route path="/categories" element={<Categories />} />
+            <Route path="/live" element={<LiveMatches />} />
+            <Route path="/category/:slug" element={<CategoryPage />} />
+            <Route path="/match/:id" element={<MatchPlayer />} />
+          </Routes>
+          <Footer />
         </Router>
       </SocketProvider>
     </ChakraProvider>

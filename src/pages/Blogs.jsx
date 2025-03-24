@@ -1,94 +1,27 @@
 import { useState, useEffect } from 'react';
 import {
-  Container,
-  Grid,
   Box,
-  Image,
-  Text,
+  Container,
+  SimpleGrid,
   Heading,
-  VStack,
-  Link,
-  Skeleton,
+  Spinner,
   Alert,
   AlertIcon,
+  AlertTitle,
+  AlertDescription,
   useColorModeValue,
-  HStack,
-  Icon
+  useToast,
 } from '@chakra-ui/react';
-import { Link as RouterLink } from 'react-router-dom';
 import axios from 'axios';
-import { FiUser, FiCalendar, FiEye } from 'react-icons/fi';
-
-const BlogCard = ({ blog }) => {
-  const textColor = useColorModeValue('gray.800', 'white');
-  const metaColor = useColorModeValue('gray.600', 'gray.400');
-  const cardBg = useColorModeValue('white', 'gray.800');
-  const cardHoverBg = useColorModeValue('gray.50', 'gray.700');
-  const borderColor = useColorModeValue('gray.200', 'gray.700');
-
-  return (
-    <Link
-      as={RouterLink}
-      to={`/blogs/${blog.slug}`}
-      _hover={{ textDecoration: 'none' }}
-    >
-      <Box
-        borderWidth="1px"
-        borderColor={borderColor}
-        borderRadius="lg"
-        overflow="hidden"
-        bg={cardBg}
-        transition="all 0.2s"
-        _hover={{
-          transform: 'translateY(-4px)',
-          shadow: 'lg',
-          bg: cardHoverBg,
-        }}
-      >
-        <Image
-          src={blog.thumbnail || 'https://via.placeholder.com/400x200?text=Blog+Post'}
-          alt={blog.title}
-          w="full"
-          h="200px"
-          objectFit="cover"
-          fallbackSrc="https://via.placeholder.com/400x200?text=Blog+Post"
-        />
-        <VStack p={4} align="start" spacing={2}>
-          <Heading size="md" noOfLines={2} color={textColor}>
-            {blog.title}
-          </Heading>
-          <HStack spacing={4} color={metaColor} fontSize="sm">
-            <HStack spacing={1}>
-              <Icon as={FiUser} />
-              <Text>{blog.author}</Text>
-            </HStack>
-            <HStack spacing={1}>
-              <Icon as={FiCalendar} />
-              <Text>{new Date(blog.createdAt).toLocaleDateString()}</Text>
-            </HStack>
-            <HStack spacing={1}>
-              <Icon as={FiEye} />
-              <Text>{blog.views || 0} views</Text>
-            </HStack>
-          </HStack>
-          <Box
-            noOfLines={3}
-            color={textColor}
-            className="blog-preview"
-            dangerouslySetInnerHTML={{
-              __html: blog.content.replace(/<[^>]*>/g, '')
-            }}
-          />
-        </VStack>
-      </Box>
-    </Link>
-  );
-};
+import BlogCard from '../components/BlogCard';
+import { useSocket } from '../context/SocketContext';
 
 const Blogs = () => {
   const [blogs, setBlogs] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const socket = useSocket();
+  const toast = useToast();
 
   const bgColor = useColorModeValue('gray.50', 'gray.900');
   const headingColor = useColorModeValue('gray.800', 'white');
@@ -96,68 +29,103 @@ const Blogs = () => {
   useEffect(() => {
     const fetchBlogs = async () => {
       try {
-        const { data } = await axios.get(`${import.meta.env.VITE_API_URL}/blogs`);
-        setBlogs(data.filter(blog => blog.isActive));
-        setError(null);
-      } catch (error) {
-        console.error('Error fetching blogs:', error);
-        setError('Failed to load blogs. Please try again later.');
-      } finally {
+        setLoading(true);
+        const { data } = await axios.get(`${import.meta.env.VITE_API_URL}/api/blogs`);
+        setBlogs(data);
+        setLoading(false);
+      } catch (err) {
+        setError('Failed to load blogs');
         setLoading(false);
       }
     };
 
     fetchBlogs();
-  }, []);
+
+    // Blog updates
+    socket.on('blogCreated', (newBlog) => {
+      setBlogs(prev => [newBlog, ...prev]);
+      toast({
+        title: 'New Blog Added',
+        description: `${newBlog.title} has been added`,
+        status: 'success',
+        duration: 3000,
+        isClosable: true,
+      });
+    });
+
+    socket.on('blogUpdated', (updatedBlog) => {
+      setBlogs(prev => prev.map(blog => 
+        blog._id === updatedBlog._id ? updatedBlog : blog
+      ));
+      toast({
+        title: 'Blog Updated',
+        description: `${updatedBlog.title} has been updated`,
+        status: 'info',
+        duration: 3000,
+        isClosable: true,
+      });
+    });
+
+    socket.on('blogDeleted', (blogId) => {
+      setBlogs(prev => prev.filter(blog => blog._id !== blogId));
+      toast({
+        title: 'Blog Removed',
+        description: 'A blog has been removed',
+        status: 'warning',
+        duration: 3000,
+        isClosable: true,
+      });
+    });
+
+    return () => {
+      socket.off('blogCreated');
+      socket.off('blogUpdated');
+      socket.off('blogDeleted');
+    };
+  }, [socket, toast]);
 
   if (loading) {
     return (
-      <Box w="100%" minH="calc(100vh - 64px)" bg={bgColor}>
-        <Box maxW="8xl" mx="auto" py={8} px={{ base: 4, md: 6, lg: 8 }}>
-          <Grid
-            templateColumns={{ base: '1fr', md: 'repeat(2, 1fr)', lg: 'repeat(3, 1fr)' }}
-            gap={6}
-          >
-            {[...Array(6)].map((_, i) => (
-              <Box key={i}>
-                <Skeleton height="200px" mb={4} />
-                <Skeleton height="20px" mb={2} />
-                <Skeleton height="20px" mb={2} />
-                <Skeleton height="20px" />
-              </Box>
-            ))}
-          </Grid>
-        </Box>
+      <Box
+        minH="calc(100vh - 64px)"
+        display="flex"
+        alignItems="center"
+        justifyContent="center"
+        bg={bgColor}
+      >
+        <Spinner size="xl" />
       </Box>
     );
   }
 
   if (error) {
     return (
-      <Box w="100%" minH="calc(100vh - 64px)" bg={bgColor}>
-        <Box maxW="8xl" mx="auto" py={8} px={{ base: 4, md: 6, lg: 8 }}>
-          <Alert status="error">
-            <AlertIcon />
-            {error}
-          </Alert>
-        </Box>
+      <Box
+        minH="calc(100vh - 64px)"
+        p={4}
+        bg={bgColor}
+      >
+        <Alert status="error">
+          <AlertIcon />
+          <AlertTitle>Error!</AlertTitle>
+          <AlertDescription>{error}</AlertDescription>
+        </Alert>
       </Box>
     );
   }
 
   return (
-    <Box w="100%" minH="calc(100vh - 64px)" bg={bgColor}>
-      <Box maxW="8xl" mx="auto" py={8} px={{ base: 4, md: 6, lg: 8 }}>
-        <Heading mb={8} color={headingColor}>Latest Blogs</Heading>
-        <Grid
-          templateColumns={{ base: '1fr', md: 'repeat(2, 1fr)', lg: 'repeat(3, 1fr)' }}
-          gap={6}
-        >
+    <Box minH="calc(100vh - 64px)" bg={bgColor} py={8}>
+      <Container maxW="container.xl">
+        <Heading mb={8} color={headingColor}>
+          Latest Blogs
+        </Heading>
+        <SimpleGrid columns={{ base: 1, md: 2, lg: 3 }} spacing={6}>
           {blogs.map((blog) => (
             <BlogCard key={blog._id} blog={blog} />
           ))}
-        </Grid>
-      </Box>
+        </SimpleGrid>
+      </Container>
     </Box>
   );
 };

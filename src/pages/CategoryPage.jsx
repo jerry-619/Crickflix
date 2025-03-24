@@ -13,9 +13,11 @@ import {
   AlertTitle,
   AlertDescription,
   useColorModeValue,
+  useToast,
 } from '@chakra-ui/react';
 import axios from 'axios';
 import MatchCard from '../components/MatchCard';
+import { useSocket } from '../context/SocketContext';
 
 const CategoryPage = () => {
   const { slug } = useParams();
@@ -23,14 +25,17 @@ const CategoryPage = () => {
   const [matches, setMatches] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const socket = useSocket();
+  const toast = useToast();
 
   const bgColor = useColorModeValue('gray.50', 'gray.900');
   const overlayBg = useColorModeValue('blackAlpha.500', 'blackAlpha.600');
   const textColor = useColorModeValue('gray.800', 'white');
   const descriptionColor = useColorModeValue('gray.600', 'gray.200');
+  const headingColor = useColorModeValue('gray.800', 'white');
 
   useEffect(() => {
-    const fetchCategoryAndMatches = async () => {
+    const fetchData = async () => {
       try {
         setLoading(true);
         const [categoryRes, matchesRes] = await Promise.all([
@@ -41,13 +46,77 @@ const CategoryPage = () => {
         setMatches(matchesRes.data);
         setLoading(false);
       } catch (err) {
-        setError('Failed to load category and matches');
+        setError('Failed to load content');
         setLoading(false);
       }
     };
 
-    fetchCategoryAndMatches();
-  }, [slug]);
+    fetchData();
+
+    // Match updates for this category
+    socket.on('matchCreated', (newMatch) => {
+      if (newMatch.category.slug === slug) {
+        setMatches(prev => [newMatch, ...prev]);
+        toast({
+          title: 'New Match Added',
+          description: `${newMatch.title} has been added to this category`,
+          status: 'success',
+          duration: 3000,
+          isClosable: true,
+        });
+      }
+    });
+
+    socket.on('matchUpdated', (updatedMatch) => {
+      if (updatedMatch.category.slug === slug) {
+        setMatches(prev => prev.map(match => 
+          match._id === updatedMatch._id ? updatedMatch : match
+        ));
+        toast({
+          title: 'Match Updated',
+          description: `${updatedMatch.title} has been updated`,
+          status: 'info',
+          duration: 3000,
+          isClosable: true,
+        });
+      } else {
+        // Remove match if it was moved to a different category
+        setMatches(prev => prev.filter(match => match._id !== updatedMatch._id));
+      }
+    });
+
+    socket.on('matchDeleted', (matchId) => {
+      setMatches(prev => prev.filter(match => match._id !== matchId));
+      toast({
+        title: 'Match Removed',
+        description: 'A match has been removed from this category',
+        status: 'warning',
+        duration: 3000,
+        isClosable: true,
+      });
+    });
+
+    // Category updates
+    socket.on('categoryUpdated', (updatedCategory) => {
+      if (updatedCategory.slug === slug) {
+        setCategory(updatedCategory);
+        toast({
+          title: 'Category Updated',
+          description: `${updatedCategory.name} has been updated`,
+          status: 'info',
+          duration: 3000,
+          isClosable: true,
+        });
+      }
+    });
+
+    return () => {
+      socket.off('matchCreated');
+      socket.off('matchUpdated');
+      socket.off('matchDeleted');
+      socket.off('categoryUpdated');
+    };
+  }, [slug, socket, toast]);
 
   if (loading) {
     return (
