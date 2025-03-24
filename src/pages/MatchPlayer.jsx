@@ -45,6 +45,17 @@ const MatchPlayer = () => {
         logger.log('Fetching match:', data);
         setMatch(data);
         
+        // Set initial streaming source
+        if (data.streamingSources?.length > 0) {
+          setSelectedSource(data.streamingSources[0]);
+        } else if (data.streamingUrl || data.iframeUrl) {
+          setSelectedSource({
+            name: 'Default',
+            url: data.streamingUrl || data.iframeUrl,
+            type: data.iframeUrl ? 'iframe' : 'm3u8'
+          });
+        }
+        
         // Only increment views for live matches
         if (data.status === 'live') {
           try {
@@ -115,14 +126,6 @@ const MatchPlayer = () => {
     return `${views.toLocaleString()} views`;
   };
 
-  const isIframeUrl = (url) => {
-    if (!url) return false;
-    return url.includes('crichdstreaming') || 
-           url.includes('cricfree') || 
-           url.includes('iframe') ||
-           (selectedSource && selectedSource.type === 'iframe');
-  };
-
   if (loading) {
     return (
       <Box w="100%" minH="calc(100vh - 64px)" bg={bgColor} display="flex" justifyContent="center" alignItems="center">
@@ -188,7 +191,12 @@ const MatchPlayer = () => {
     );
   }
 
-  if (!match.streamingSources || match.streamingSources.length === 0) {
+  // Check if there are any streaming sources available
+  const hasStreamingSources = (match.streamingSources && match.streamingSources.length > 0) || 
+                            match.streamingUrl || 
+                            match.iframeUrl;
+
+  if (!hasStreamingSources) {
     return (
       <Box w="100%" minH="calc(100vh - 64px)" bg={bgColor}>
         <Box maxW="8xl" mx="auto" py={8} px={{ base: 4, md: 6, lg: 8 }}>
@@ -207,12 +215,28 @@ const MatchPlayer = () => {
     );
   }
 
-  // Set initial selected source if not set
-  useEffect(() => {
-    if (match?.streamingSources?.length > 0 && !selectedSource) {
-      setSelectedSource(match.streamingSources[0]);
-    }
-  }, [match]);
+  // Get all available sources
+  const allSources = [
+    ...(match.streamingSources || []),
+    ...(match.streamingUrl ? [{
+      name: 'Default Stream',
+      url: match.streamingUrl,
+      type: 'm3u8'
+    }] : []),
+    ...(match.iframeUrl ? [{
+      name: 'Default Iframe',
+      url: match.iframeUrl,
+      type: 'iframe'
+    }] : [])
+  ];
+
+  const isIframeUrl = (url) => {
+    if (!url) return false;
+    return url.includes('crichdstreaming') || 
+           url.includes('cricfree') || 
+           url.includes('iframe') ||
+           (selectedSource && selectedSource.type === 'iframe');
+  };
 
   return (
     <Box w="100%" minH="calc(100vh - 64px)" bg={bgColor} overflowX="hidden">
@@ -276,7 +300,7 @@ const MatchPlayer = () => {
             >
               <Heading size="md" mb={4} color="gray.100">Streaming Sources</Heading>
               <ButtonGroup spacing={4} flexWrap="wrap" gap={2}>
-                {match.streamingSources.map((source, index) => (
+                {allSources.map((source, index) => (
                   <Button
                     key={index}
                     onClick={() => setSelectedSource(source)}
