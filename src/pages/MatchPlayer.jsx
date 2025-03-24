@@ -45,15 +45,15 @@ const MatchPlayer = () => {
         logger.log('Fetching match:', data);
         setMatch(data);
         
-        // Set initial streaming source
-        if (data.streamingSources?.length > 0) {
-          setSelectedSource(data.streamingSources[0]);
-        } else if (data.streamingUrl || data.iframeUrl) {
+        // Set initial streaming source - prioritize legacy URLs
+        if (data.streamingUrl || data.iframeUrl) {
           setSelectedSource({
-            name: 'Default',
+            name: 'Default Stream',
             url: data.streamingUrl || data.iframeUrl,
             type: data.iframeUrl ? 'iframe' : 'm3u8'
           });
+        } else if (data.streamingSources?.length > 0) {
+          setSelectedSource(data.streamingSources[0]);
         }
         
         // Only increment views for live matches
@@ -217,7 +217,7 @@ const MatchPlayer = () => {
 
   // Get all available sources
   const allSources = [
-    ...(match.streamingSources || []),
+    // Add legacy sources first
     ...(match.streamingUrl ? [{
       name: 'Default Stream',
       url: match.streamingUrl,
@@ -227,7 +227,9 @@ const MatchPlayer = () => {
       name: 'Default Iframe',
       url: match.iframeUrl,
       type: 'iframe'
-    }] : [])
+    }] : []),
+    // Then add multiple streaming sources
+    ...(match.streamingSources || [])
   ];
 
   const isIframeUrl = (url) => {
