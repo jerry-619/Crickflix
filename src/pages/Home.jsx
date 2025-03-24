@@ -16,12 +16,14 @@ import {
 import axios from 'axios';
 import MatchCard from '../components/MatchCard';
 import CategoryCard from '../components/CategoryCard';
+import { useSocket } from '../context/SocketContext';
 
 const Home = () => {
   const [categories, setCategories] = useState([]);
   const [matches, setMatches] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const socket = useSocket();
 
   const bgColor = useColorModeValue('gray.50', 'gray.900');
   const headingColor = useColorModeValue('gray.800', 'white');
@@ -44,7 +46,37 @@ const Home = () => {
     };
 
     fetchData();
-  }, []);
+
+    // Listen for real-time updates
+    socket.on('matchCreated', (newMatch) => {
+      setMatches(prev => [newMatch, ...prev]);
+    });
+
+    socket.on('matchUpdated', (updatedMatch) => {
+      setMatches(prev => prev.map(match => 
+        match._id === updatedMatch._id ? updatedMatch : match
+      ));
+    });
+
+    socket.on('matchDeleted', (matchId) => {
+      setMatches(prev => prev.filter(match => match._id !== matchId));
+    });
+
+    return () => {
+      socket.off('matchCreated');
+      socket.off('matchUpdated');
+      socket.off('matchDeleted');
+    };
+  }, [socket]);
+
+  const fetchMatches = async () => {
+    try {
+      const { data } = await axios.get(`${import.meta.env.VITE_API_URL}/matches`);
+      setMatches(data);
+    } catch (error) {
+      console.error('Error fetching matches:', error);
+    }
+  };
 
   if (loading) {
     return (
