@@ -306,10 +306,10 @@ const MatchPlayer = () => {
                   <Button
                     key={index}
                     onClick={() => setSelectedSource(source)}
-                    bg={selectedSource === source ? buttonActiveBg : buttonBg}
-                    color={selectedSource === source ? buttonActiveColor : undefined}
+                    bg={selectedSource?.url === source.url ? buttonActiveBg : buttonBg}
+                    color={selectedSource?.url === source.url ? buttonActiveColor : undefined}
                     _hover={{
-                      bg: selectedSource === source ? buttonActiveBg : buttonHoverBg
+                      bg: selectedSource?.url === source.url ? buttonActiveBg : buttonHoverBg
                     }}
                     leftIcon={
                       source.type === 'iframe' ? <Icon as={FiMonitor} /> :
