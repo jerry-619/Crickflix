@@ -20,7 +20,6 @@ import {
 } from '@chakra-ui/react';
 import axios from 'axios';
 import VideoPlayer from '../components/VideoPlayer';
-import logger from '../utils/logger';
 import { FiMonitor, FiPlay, FiLink } from 'react-icons/fi';
 
 const MatchPlayer = () => {
@@ -42,7 +41,6 @@ const MatchPlayer = () => {
     const fetchMatch = async () => {
       try {
         const { data } = await axios.get(`${import.meta.env.VITE_API_URL}/matches/${id}`);
-        logger.log('Fetching match:', data);
         setMatch(data);
         
         // Set initial streaming source - prioritize legacy URLs
@@ -61,13 +59,12 @@ const MatchPlayer = () => {
           try {
             await axios.post(`${import.meta.env.VITE_API_URL}/matches/${id}/view`);
           } catch (viewErr) {
-            logger.error('Error incrementing views:', viewErr);
+            // Silent error handling for view count
           }
         }
         
         setLoading(false);
       } catch (err) {
-        logger.error('Error fetching match:', err);
         setError('Failed to load match');
         setLoading(false);
       }

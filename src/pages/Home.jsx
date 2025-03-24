@@ -57,7 +57,7 @@ const Home = () => {
 
     // Match updates
     const handleMatchCreated = (newMatch) => {
-      console.log('New match created:', newMatch);
+      console.log('Match event: Created');
       setMatches(prev => [newMatch, ...prev]);
       toast({
         title: 'New Match Added',
@@ -70,7 +70,7 @@ const Home = () => {
     };
 
     const handleMatchUpdated = (updatedMatch) => {
-      console.log('Match updated:', updatedMatch);
+      console.log('Match event: Updated');
       setMatches(prev => prev.map(match => 
         match._id === updatedMatch._id ? updatedMatch : match
       ));
@@ -85,7 +85,7 @@ const Home = () => {
     };
 
     const handleMatchDeleted = (matchId) => {
-      console.log('Match deleted:', matchId);
+      console.log('Match event: Deleted');
       setMatches(prev => prev.filter(match => match._id !== matchId));
       toast({
         title: 'Match Removed',
@@ -99,7 +99,7 @@ const Home = () => {
 
     // Category updates
     const handleCategoryCreated = (newCategory) => {
-      console.log('New category created:', newCategory);
+      console.log('Category event: Created');
       setCategories(prev => [newCategory, ...prev]);
       toast({
         title: 'New Category Added',
@@ -112,7 +112,7 @@ const Home = () => {
     };
 
     const handleCategoryUpdated = (updatedCategory) => {
-      console.log('Category updated:', updatedCategory);
+      console.log('Category event: Updated');
       setCategories(prev => prev.map(category => 
         category._id === updatedCategory._id ? updatedCategory : category
       ));
@@ -127,7 +127,7 @@ const Home = () => {
     };
 
     const handleCategoryDeleted = (categoryId) => {
-      console.log('Category deleted:', categoryId);
+      console.log('Category event: Deleted');
       setCategories(prev => prev.filter(category => category._id !== categoryId));
       toast({
         title: 'Category Removed',
