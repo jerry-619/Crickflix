@@ -14,10 +14,14 @@ import {
   AlertDescription,
   Button,
   useColorModeValue,
+  HStack,
+  ButtonGroup,
+  Icon,
 } from '@chakra-ui/react';
 import axios from 'axios';
 import VideoPlayer from '../components/VideoPlayer';
 import logger from '../utils/logger';
+import { FiMonitor, FiPlay, FiLink } from 'react-icons/fi';
 
 const MatchPlayer = () => {
   const { id } = useParams();
@@ -26,8 +30,13 @@ const MatchPlayer = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [timeLeft, setTimeLeft] = useState('');
+  const [selectedSource, setSelectedSource] = useState(null);
 
   const bgColor = useColorModeValue('gray.50', 'gray.900');
+  const buttonBg = useColorModeValue('gray.100', 'gray.700');
+  const buttonHoverBg = useColorModeValue('gray.200', 'gray.600');
+  const buttonActiveBg = useColorModeValue('blue.500', 'blue.400');
+  const buttonActiveColor = 'white';
 
   useEffect(() => {
     const fetchMatch = async () => {
@@ -111,7 +120,7 @@ const MatchPlayer = () => {
     return url.includes('crichdstreaming') || 
            url.includes('cricfree') || 
            url.includes('iframe') ||
-           match.streamType === 'iframe';
+           (selectedSource && selectedSource.type === 'iframe');
   };
 
   if (loading) {
@@ -179,8 +188,7 @@ const MatchPlayer = () => {
     );
   }
 
-  const streamUrl = match.streamingUrl || match.iframeUrl;
-  if (!streamUrl) {
+  if (!match.streamingSources || match.streamingSources.length === 0) {
     return (
       <Box w="100%" minH="calc(100vh - 64px)" bg={bgColor}>
         <Box maxW="8xl" mx="auto" py={8} px={{ base: 4, md: 6, lg: 8 }}>
@@ -199,14 +207,21 @@ const MatchPlayer = () => {
     );
   }
 
+  // Set initial selected source if not set
+  useEffect(() => {
+    if (match?.streamingSources?.length > 0 && !selectedSource) {
+      setSelectedSource(match.streamingSources[0]);
+    }
+  }, [match]);
+
   return (
     <Box w="100%" minH="calc(100vh - 64px)" bg={bgColor} overflowX="hidden">
       {/* Player Section */}
       <Box w="100%" bg="black" position="relative">
-        {isIframeUrl(streamUrl) ? (
+        {selectedSource && (isIframeUrl(selectedSource.url) ? (
           <Box position="relative" w="100%" paddingTop="56.25%">
             <iframe
-              src={streamUrl}
+              src={selectedSource.url}
               style={{
                 position: 'absolute',
                 top: 0,
@@ -221,9 +236,9 @@ const MatchPlayer = () => {
           </Box>
         ) : (
           <Box w="100%">
-            <VideoPlayer url={streamUrl} />
+            <VideoPlayer url={selectedSource.url} />
           </Box>
-        )}
+        ))}
       </Box>
 
       {/* Match Details Section */}
@@ -248,6 +263,38 @@ const MatchPlayer = () => {
                   • {formatViews(match.views)}
                 </Text>
               </Box>
+            </Box>
+
+            {/* Streaming Sources */}
+            <Box 
+              w="100%"
+              bg="gray.800" 
+              p={6} 
+              borderRadius="lg"
+              border="1px solid"
+              borderColor="gray.700"
+            >
+              <Heading size="md" mb={4} color="gray.100">Streaming Sources</Heading>
+              <ButtonGroup spacing={4} flexWrap="wrap" gap={2}>
+                {match.streamingSources.map((source, index) => (
+                  <Button
+                    key={index}
+                    onClick={() => setSelectedSource(source)}
+                    bg={selectedSource === source ? buttonActiveBg : buttonBg}
+                    color={selectedSource === source ? buttonActiveColor : undefined}
+                    _hover={{
+                      bg: selectedSource === source ? buttonActiveBg : buttonHoverBg
+                    }}
+                    leftIcon={
+                      source.type === 'iframe' ? <Icon as={FiMonitor} /> :
+                      source.type === 'm3u8' ? <Icon as={FiPlay} /> :
+                      <Icon as={FiLink} />
+                    }
+                  >
+                    {source.name || `Link ${index + 1}`}
+                  </Button>
+                ))}
+              </ButtonGroup>
             </Box>
 
             {match.description && (
