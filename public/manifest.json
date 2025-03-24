@@ -1,0 +1,65 @@
+{
+  "name": "CrickFlix - Live Cricket Streaming Platform",
+  "short_name": "CrickFlix",
+  "description": "Watch live cricket streaming in HD quality - IPL 2025, International matches, T20 World Cup, Test matches & more. The ultimate cricket streaming destination.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#1A202C",
+  "theme_color": "#0967D2",
+  "orientation": "any",
+  "icons": [
+    {
+      "src": "/icon-192x192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/icon-256x256.png",
+      "sizes": "256x256",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/icon-384x384.png",
+      "sizes": "384x384",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/icon-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+  "categories": ["sports", "entertainment", "streaming"],
+  "screenshots": [
+    {
+      "src": "/screenshot-1.jpg",
+      "sizes": "1280x720",
+      "type": "image/jpeg",
+      "label": "Watch IPL 2025 Live Matches"
+    },
+    {
+      "src": "/screenshot-2.jpg",
+      "sizes": "1280x720",
+      "type": "image/jpeg",
+      "label": "Live International Cricket Streaming"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Live Matches",
+      "url": "/live",
+      "description": "Watch ongoing cricket matches"
+    },
+    {
+      "name": "IPL 2025",
+      "url": "/category/ipl-2025",
+      "description": "Stream IPL 2025 matches live"
+    }
+  ],
+  "related_applications": [],
+  "prefer_related_applications": false
+} 

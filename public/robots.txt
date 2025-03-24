@@ -1,0 +1,15 @@
+# https://www.robotstxt.org/robotstxt.html
+User-agent: *
+Allow: /
+Allow: /blogs
+Allow: /category/*
+Allow: /blog/*
+
+# Disallow admin routes and API endpoints
+Disallow: /admin
+Disallow: /api/
+Disallow: /login
+Disallow: /register
+
+# Crawl-delay for all bots
+Crawl-delay: 1 

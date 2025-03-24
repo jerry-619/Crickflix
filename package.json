@@ -1,0 +1,42 @@
+{
+  "name": "crickflix",
+  "version": "1.0.0",
+  "type": "module",
+  "description": "Crickflix – Your Ultimate Destination for Live Cricket Streaming!",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build --mode production",
+    "start": "vite build",
+    "lint": "eslint .",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "@chakra-ui/icons": "^2.2.4",
+    "@chakra-ui/react": "^2.8.0",
+    "@emotion/react": "^11.11.0",
+    "@emotion/styled": "^11.11.0",
+    "@videojs/http-streaming": "^3.17.0",
+    "axios": "^1.6.0",
+    "dashjs": "^5.0.0",
+    "framer-motion": "^10.16.0",
+    "hls.js": "^1.4.12",
+    "plyr": "^3.7.8",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
+    "react-icons": "^4.12.0",
+    "react-player": "^2.14.0",
+    "react-router-dom": "^6.22.0",
+    "video.js": "^8.22.0"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.21.0",
+    "@types/react": "^18.2.0",
+    "@types/react-dom": "^18.2.0",
+    "@vitejs/plugin-react": "^4.3.4",
+    "eslint": "^9.21.0",
+    "eslint-plugin-react-hooks": "^5.1.0",
+    "eslint-plugin-react-refresh": "^0.4.19",
+    "globals": "^15.15.0",
+    "vite": "^5.1.0"
+  }
+}
