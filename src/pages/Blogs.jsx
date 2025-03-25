@@ -30,7 +30,7 @@ const Blogs = () => {
     const fetchBlogs = async () => {
       try {
         setLoading(true);
-        const { data } = await axios.get(`${import.meta.env.VITE_API_URL}/api/blogs`);
+        const { data } = await axios.get(`${import.meta.env.VITE_API_URL}/blogs`);
         setBlogs(data);
         setLoading(false);
       } catch (err) {
