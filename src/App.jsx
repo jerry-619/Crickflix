@@ -1,3 +1,4 @@
+import { useEffect } from 'react';
 import { BrowserRouter as Router } from 'react-router-dom';
 import { ChakraProvider, Box } from '@chakra-ui/react';
 import theme from './theme.js';
@@ -5,8 +6,15 @@ import Navbar from './components/Navbar';
 import AppRoutes from './routes';
 import { SocketProvider } from './context/SocketContext';
 import TelegramPopup from './components/TelegramPopup';
+import { startKeepAlive } from './utils/keepAlive';
 
 const App = () => {
+  useEffect(() => {
+    // Start the keep-alive ping
+    const cleanup = startKeepAlive();
+    return cleanup;
+  }, []);
+
   return (
     <ChakraProvider theme={theme}>
       <SocketProvider>
