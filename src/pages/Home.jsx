@@ -37,7 +37,14 @@ const Home = () => {
         axios.get(`${import.meta.env.VITE_API_URL}/matches`),
         axios.get(`${import.meta.env.VITE_API_URL}/categories`)
       ]);
-      setMatches(matchesRes.data);
+      
+      // Sort matches: live first, then upcoming, then completed
+      const sortedMatches = matchesRes.data.sort((a, b) => {
+        const statusOrder = { live: 0, upcoming: 1, completed: 2 };
+        return statusOrder[a.status] - statusOrder[b.status];
+      });
+      
+      setMatches(sortedMatches);
       setCategories(categoriesRes.data);
       setError(null);
     } catch (err) {
