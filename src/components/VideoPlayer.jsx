@@ -9,6 +9,20 @@ const VideoPlayer = ({ url }) => {
   const videoRef = useRef(null);
   const hlsRef = useRef(null);
 
+  // Function to convert any URL to proxy URL
+  const getProxiedUrl = (originalUrl) => {
+    if (!originalUrl) return null;
+    try {
+      // Encode the original URL to handle special characters
+      const encodedUrl = encodeURIComponent(originalUrl);
+      // Return the proxied URL
+      return `${import.meta.env.VITE_API_URL}/stream?url=${encodedUrl}`;
+    } catch (error) {
+      console.error('Error processing URL:', error);
+      return originalUrl;
+    }
+  };
+
   useEffect(() => {
     const video = videoRef.current;
     if (!video || !url) return;
@@ -39,6 +53,15 @@ const VideoPlayer = ({ url }) => {
             xhr.withCredentials = false;
           }
         });
+
+        // Use the proxied URL
+        const proxiedUrl = getProxiedUrl(url);
+        console.log('Original URL:', url);
+        console.log('Proxied URL:', proxiedUrl);
+        
+        hls.loadSource(proxiedUrl);
+        hls.attachMedia(video);
+        hlsRef.current = hls;
 
         hls.on(Hls.Events.MEDIA_ATTACHED, () => {
           console.log('HLS Media attached');
@@ -71,13 +94,10 @@ const VideoPlayer = ({ url }) => {
           }
         });
 
-        hls.loadSource(url);
-        hls.attachMedia(video);
-        hlsRef.current = hls;
-
       } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
         // For Safari
-        video.src = url;
+        const proxiedUrl = getProxiedUrl(url);
+        video.src = proxiedUrl;
         video.addEventListener('loadedmetadata', () => {
           video.play().catch(error => {
             console.log('Playback not started', error);
