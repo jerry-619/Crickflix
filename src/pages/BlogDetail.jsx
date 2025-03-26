@@ -167,56 +167,66 @@ const BlogDetail = () => {
                   my: 4
                 },
                 '& p': {
-                  mb: 4
+                  mb: 4,
+                  color: textColor
                 },
                 '& h1, & h2, & h3, & h4, & h5, & h6': {
                   mt: 6,
                   mb: 4,
-                  fontWeight: 'bold'
+                  fontWeight: 'bold',
+                  color: textColor
                 },
                 '& ul, & ol': {
                   pl: 6,
-                  mb: 4
+                  mb: 4,
+                  color: textColor
                 },
                 '& li': {
-                  mb: 2
+                  mb: 2,
+                  color: textColor
                 },
                 '& blockquote': {
                   borderLeftWidth: '4px',
-                  borderLeftColor: 'gray.200',
+                  borderLeftColor: borderColor,
                   pl: 4,
                   py: 2,
                   my: 4,
-                  fontStyle: 'italic'
+                  fontStyle: 'italic',
+                  color: textColor,
+                  bg: useColorModeValue('gray.50', 'whiteAlpha.100')
                 },
                 '& pre': {
-                  bg: 'gray.100',
+                  bg: useColorModeValue('gray.100', 'whiteAlpha.100'),
                   p: 4,
                   borderRadius: 'md',
                   overflowX: 'auto',
-                  mb: 4
+                  mb: 4,
+                  color: textColor
                 },
                 '& code': {
                   fontFamily: 'monospace',
-                  bg: 'gray.100',
+                  bg: useColorModeValue('gray.100', 'whiteAlpha.100'),
                   p: 1,
-                  borderRadius: 'sm'
+                  borderRadius: 'sm',
+                  color: textColor
                 },
                 '& table': {
                   width: '100%',
                   mb: 4,
-                  borderCollapse: 'collapse'
+                  borderCollapse: 'collapse',
+                  color: textColor
                 },
                 '& th, & td': {
                   border: '1px solid',
-                  borderColor: 'gray.200',
-                  p: 2
+                  borderColor: borderColor,
+                  p: 2,
+                  color: textColor
                 },
                 '& a': {
-                  color: 'blue.500',
+                  color: useColorModeValue('blue.600', 'blue.300'),
                   textDecoration: 'underline',
                   _hover: {
-                    color: 'blue.600'
+                    color: useColorModeValue('blue.700', 'blue.200')
                   }
                 }
               }}
