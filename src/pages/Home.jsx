@@ -38,10 +38,20 @@ const Home = () => {
         axios.get(`${import.meta.env.VITE_API_URL}/categories`)
       ]);
       
-      // Sort matches: live first, then upcoming, then completed
+      // Sort matches: live first, then upcoming (by scheduled time), then completed
       const sortedMatches = matchesRes.data.sort((a, b) => {
+        // First sort by status
         const statusOrder = { live: 0, upcoming: 1, completed: 2 };
-        return statusOrder[a.status] - statusOrder[b.status];
+        const statusDiff = statusOrder[a.status] - statusOrder[b.status];
+        
+        if (statusDiff !== 0) return statusDiff;
+        
+        // If both are upcoming, sort by scheduled time
+        if (a.status === 'upcoming' && b.status === 'upcoming') {
+          return new Date(a.scheduledTime) - new Date(b.scheduledTime);
+        }
+        
+        return statusDiff;
       });
       
       setMatches(sortedMatches);
