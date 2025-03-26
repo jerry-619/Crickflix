@@ -6,7 +6,6 @@ import CategoryPage from './pages/CategoryPage';
 import MatchPlayer from './pages/MatchPlayer';
 import Categories from './pages/Categories';
 import LiveMatches from './pages/LiveMatches';
-import TestVideo from './components/TestVideo';
 
 const AppRoutes = () => {
   return (
@@ -18,7 +17,6 @@ const AppRoutes = () => {
       <Route path="/live" element={<LiveMatches />} />
       <Route path="/category/:slug" element={<CategoryPage />} />
       <Route path="/match/:id" element={<MatchPlayer />} />
-      <Route path="/test-video" element={<TestVideo />} />
     </Routes>
   );
 };
