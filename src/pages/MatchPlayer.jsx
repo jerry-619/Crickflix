@@ -126,8 +126,6 @@ const MatchPlayer = () => {
     return `${views.toLocaleString()} views`;
   };
 
-  const scheduledTimeIST = match.scheduledTime ? moment(match.scheduledTime).tz('Asia/Kolkata').format('YYYY-MM-DD HH:mm:ss') : 'N/A';
-
   if (loading) {
     return (
       <Box w="100%" minH="calc(100vh - 64px)" bg={bgColor} display="flex" justifyContent="center" alignItems="center">
@@ -152,6 +150,8 @@ const MatchPlayer = () => {
       </Box>
     );
   }
+
+  const scheduledTimeIST = match?.scheduledTime ? moment(match.scheduledTime).tz('Asia/Kolkata').format('YYYY-MM-DD HH:mm:ss') : 'N/A';
 
   // Prevent access to completed matches
   if (match.status === 'completed') {
