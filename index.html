@@ -2,7 +2,7 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <link rel="icon" type="image/png" href="/logo.png" />
+    <link rel="icon" type="image/png" href="/icons/icon-192x192.png" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     
     <!-- Primary Meta Tags -->
@@ -11,6 +11,12 @@
     <meta name="description" content="Watch live cricket streaming in HD quality - IPL 2025, International matches, T20 World Cup, Test matches & more. Get live scores, match highlights, and expert commentary. Best cricket streaming platform for all cricket fans." />
     <meta name="keywords" content="live cricket streaming, IPL 2025 live, cricket live match today, live cricket score, international cricket live, T20 World Cup 2025, Test cricket live streaming, cricket highlights, cricket match live, free cricket streaming, HD cricket streaming, cricket online, live sports streaming live cricket streaming, IPL 2025 live, watch cricket online, live cricket match today, World Cup 2025 live, T20 live streaming, CrickFlix live cricket, cricket score updates, IPL match live, cricket live score today" />
     
+        <!-- PWA Meta Tags -->
+        <meta name="mobile-web-app-capable" content="yes" />
+        <meta name="apple-mobile-web-app-capable" content="yes" />
+        <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+        <meta name="apple-mobile-web-app-title" content="Crickflix" />
+
     <!-- Open Graph / Facebook -->
     <meta property="og:type" content="website" />
     <meta property="og:title" content="CrickFlix - Watch Live Cricket Streaming in HD | IPL 2025" />
@@ -28,7 +34,9 @@
     <meta name="language" content="English" />
     <meta name="revisit-after" content="1 days" />
     <meta name="author" content="CrickFlix" />
-    <meta name="theme-color" content="#0967D2" />
+    <meta name="theme-color" content="#3182ce" />
+
+    
 
     <!-- Structured Data for Cricket Streaming Website -->
     <script type="application/ld+json">
@@ -54,11 +62,47 @@
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="black" />
     <meta name="apple-mobile-web-app-title" content="CrickFlix" />
-    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+<!-- Icons -->
+<link rel="apple-touch-icon" href="/icons/icon-192x192.png" />
+<link rel="apple-touch-icon" sizes="152x152" href="/icons/icon-152x152.png" />
+<link rel="apple-touch-icon" sizes="180x180" href="/icons/icon-192x192.png" />
+<link rel="apple-touch-icon" sizes="167x167" href="/icons/icon-152x152.png" />
+
+<!-- Splash Screens -->
+<!-- iPhone 5/SE -->
+<link rel="apple-touch-startup-image" media="(device-width: 320px) and (device-height: 568px) and (-webkit-device-pixel-ratio: 2)" href="/splash/splash-640x1136.png" />
+<!-- iPhone 6/7/8 -->
+<link rel="apple-touch-startup-image" media="(device-width: 375px) and (device-height: 667px) and (-webkit-device-pixel-ratio: 2)" href="/splash/splash-750x1334.png" />
+<!-- iPhone XR -->
+<link rel="apple-touch-startup-image" media="(device-width: 414px) and (device-height: 896px) and (-webkit-device-pixel-ratio: 2)" href="/splash/splash-828x1792.png" />
+<!-- iPhone X/XS -->
+<link rel="apple-touch-startup-image" media="(device-width: 375px) and (device-height: 812px) and (-webkit-device-pixel-ratio: 3)" href="/splash/splash-1125x2436.png" />
+<!-- iPhone XS Max -->
+<link rel="apple-touch-startup-image" media="(device-width: 414px) and (device-height: 896px) and (-webkit-device-pixel-ratio: 3)" href="/splash/splash-1242x2688.png" />
+<!-- iPad Mini/Air -->
+<link rel="apple-touch-startup-image" media="(device-width: 768px) and (device-height: 1024px) and (-webkit-device-pixel-ratio: 2)" href="/splash/splash-1536x2048.png" />
+<!-- iPad Pro 10.5" -->
+<link rel="apple-touch-startup-image" media="(device-width: 834px) and (device-height: 1112px) and (-webkit-device-pixel-ratio: 2)" href="/splash/splash-1668x2224.png" />
+<!-- iPad Pro 12.9" -->
+<link rel="apple-touch-startup-image" media="(device-width: 1024px) and (device-height: 1366px) and (-webkit-device-pixel-ratio: 2)" href="/splash/splash-2048x2732.png" />
+
     <meta name="google-site-verification" content="BFbziIuj-eSB_5aMZPdP-ICBw5iCszkx8bG_QBL_u-8" />
   </head>
   <body>
     <div id="root"></div>
     <script type="module" src="/src/main.jsx"></script>
+    <script>
+      if ('serviceWorker' in navigator) {
+        window.addEventListener('load', () => {
+          navigator.serviceWorker.register('/sw.js')
+            .then(registration => {
+              console.log('ServiceWorker registration successful');
+            })
+            .catch(err => {
+              console.log('ServiceWorker registration failed: ', err);
+            });
+        });
+      }
+    </script>
   </body>
 </html> 

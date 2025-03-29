@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="512" height="512" viewBox="0 0 512 512" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Background Circle -->
+  <circle cx="256" cy="256" r="248" fill="#3182CE"/>
+  
+  <!-- Cricket Ball -->
+  <circle cx="256" cy="256" r="180" fill="#E53E3E"/>
+  
+  <!-- Ball Stitches -->
+  <path d="M256 76C316 76 368 128 368 188" stroke="white" stroke-width="12"/>
+  <path d="M256 436C196 436 144 384 144 324" stroke="white" stroke-width="12"/>
+  
+  <!-- Text -->
+  <text x="256" y="270" font-family="Arial Black" font-size="72" fill="white" text-anchor="middle">CF</text>
+</svg> 
