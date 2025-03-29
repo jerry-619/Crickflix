@@ -59,10 +59,19 @@ const PredictionTabs = ({ matchId }) => {
       console.log(`Fetching ${type} prediction for match:`, matchId);
       const response = await axios.get(`${import.meta.env.VITE_API_URL}/predictions/${matchId}/${type}`);
       console.log(`${type} prediction response:`, response.data);
+      
+      // Validate that the response data has the expected structure
+      if (!response.data || typeof response.data !== 'object') {
+        throw new Error('Invalid response format');
+      }
+      
       setPredictions(prev => ({ ...prev, [type]: response.data }));
     } catch (err) {
       console.error(`${type} prediction error:`, err);
-      const errorMessage = err.response?.data?.message || err.message || `Failed to load ${type} prediction`;
+      const errorMessage = err.response?.data?.message || 
+                         err.response?.data?.error || 
+                         err.message || 
+                         `Failed to load ${type} prediction`;
       setError(prev => ({ ...prev, [type]: errorMessage }));
     } finally {
       setLoading(prev => ({ ...prev, [type]: false }));
@@ -311,27 +320,72 @@ const PredictionTabs = ({ matchId }) => {
     
     if (!predictions.match) return null;
 
+    const { matchAnalysis, prediction, team1Stats, team2Stats, venue } = predictions.match;
+
     return (
-      <Box>
-        <Card bg={cardBg} borderWidth="1px" borderColor={borderColor} mb={4}>
+      <Stack spacing={4}>
+        {/* Venue and Win Probability */}
+        <Card bg={cardBg} borderWidth="1px" borderColor={borderColor}>
           <CardBody>
             <Stack spacing={4}>
-              <Heading size="md">Win Probability</Heading>
+              <Heading size="md">Match Details</Heading>
               <Box>
-                <Text mb={2}>{predictions.match.team1}: {predictions.match.team1Probability}%</Text>
-                <Progress value={predictions.match.team1Probability} colorScheme="blue" mb={4} />
-                <Text mb={2}>{predictions.match.team2}: {predictions.match.team2Probability}%</Text>
-                <Progress value={predictions.match.team2Probability} colorScheme="green" />
-              </Box>
-              <Divider />
-              <Box>
-                <Heading size="sm" mb={2}>Analysis</Heading>
-                <Text>{predictions.match.analysis}</Text>
+                <Text mb={2}>Venue: {venue?.name || 'N/A'}</Text>
+                <Text mb={2}>Location: {venue?.city}, {venue?.country}</Text>
+                <Text mb={2}>Conditions: {matchAnalysis.conditions.weather}, {matchAnalysis.conditions.pitch}</Text>
+                <Text mb={4}>Time: {matchAnalysis.conditions.time}</Text>
+                
+                <Heading size="sm" mb={2}>Win Probability</Heading>
+                <Text mb={2}>{predictions.match.team1}: {matchAnalysis.winningProbability.team1}</Text>
+                <Progress value={parseInt(matchAnalysis.winningProbability.team1)} colorScheme="blue" mb={4} />
+                <Text mb={2}>{predictions.match.team2}: {matchAnalysis.winningProbability.team2}</Text>
+                <Progress value={parseInt(matchAnalysis.winningProbability.team2)} colorScheme="green" />
               </Box>
             </Stack>
           </CardBody>
         </Card>
-      </Box>
+
+        {/* Match Analysis */}
+        <Card bg={cardBg} borderWidth="1px" borderColor={borderColor}>
+          <CardBody>
+            <Stack spacing={4}>
+              <Heading size="md">Match Analysis</Heading>
+              <Grid templateColumns={{ base: "1fr", md: "repeat(2, 1fr)" }} gap={4}>
+                {/* Team 1 Stats */}
+                <Box>
+                  <Heading size="sm" mb={2}>{predictions.match.team1}</Heading>
+                  <Text fontSize="sm" mb={2}>Recent Form: {team1Stats.recentForm}</Text>
+                  <Text fontSize="sm" mb={2}>Key Players:</Text>
+                  <UnorderedList>
+                    {team1Stats.keyPlayers.map((player, index) => (
+                      <ListItem key={index}>{player}</ListItem>
+                    ))}
+                  </UnorderedList>
+                </Box>
+                {/* Team 2 Stats */}
+                <Box>
+                  <Heading size="sm" mb={2}>{predictions.match.team2}</Heading>
+                  <Text fontSize="sm" mb={2}>Recent Form: {team2Stats.recentForm}</Text>
+                  <Text fontSize="sm" mb={2}>Key Players:</Text>
+                  <UnorderedList>
+                    {team2Stats.keyPlayers.map((player, index) => (
+                      <ListItem key={index}>{player}</ListItem>
+                    ))}
+                  </UnorderedList>
+                </Box>
+              </Grid>
+              <Divider />
+              {/* Prediction */}
+              <Box>
+                <Heading size="sm" mb={2}>Prediction</Heading>
+                <Text>Winner: <Badge colorScheme="green">{prediction.winner}</Badge></Text>
+                <Text>Margin: {prediction.margin}</Text>
+                <Text>Confidence: {prediction.confidence}</Text>
+              </Box>
+            </Stack>
+          </CardBody>
+        </Card>
+      </Stack>
     );
   };
 
@@ -360,27 +414,66 @@ const PredictionTabs = ({ matchId }) => {
     
     if (!predictions.toss) return null;
 
+    const { tossPrediction, conditions, historicalData, venue } = predictions.toss;
+
     return (
-      <Card bg={cardBg} borderWidth="1px" borderColor={borderColor}>
-        <CardBody>
-          <Stack spacing={4}>
-            <Box>
-              <Heading size="md" mb={4}>Toss Prediction</Heading>
-              <Text fontSize="lg" mb={2}>
-                Likely winner: <Badge colorScheme="purple">{predictions.toss.winner}</Badge>
-              </Text>
-              <Text fontSize="lg">
-                Expected decision: <Badge colorScheme="orange">{predictions.toss.decision}</Badge>
-              </Text>
-            </Box>
-            <Divider />
-            <Box>
-              <Heading size="sm" mb={2}>Reasoning</Heading>
-              <Text>{predictions.toss.reasoning}</Text>
-            </Box>
-          </Stack>
-        </CardBody>
-      </Card>
+      <Stack spacing={4}>
+        {/* Toss Prediction */}
+        <Card bg={cardBg} borderWidth="1px" borderColor={borderColor}>
+          <CardBody>
+            <Stack spacing={4}>
+              <Heading size="md">Toss Prediction</Heading>
+              <Box>
+                <Text fontSize="lg" mb={2}>
+                  Venue: {venue?.name || 'N/A'}
+                </Text>
+                <Text fontSize="lg" mb={2}>
+                  Location: {venue?.city}, {venue?.country}
+                </Text>
+                <Text fontSize="lg" mb={2}>
+                  Likely winner: <Badge colorScheme="purple">{tossPrediction.winner}</Badge>
+                </Text>
+                <Text fontSize="lg" mb={2}>
+                  Expected decision: <Badge colorScheme="orange">{tossPrediction.choice}</Badge>
+                </Text>
+                <Text fontSize="lg">
+                  Confidence: {tossPrediction.confidence}
+                </Text>
+              </Box>
+            </Stack>
+          </CardBody>
+        </Card>
+
+        {/* Conditions and Historical Data */}
+        <Card bg={cardBg} borderWidth="1px" borderColor={borderColor}>
+          <CardBody>
+            <Stack spacing={4}>
+              <Box>
+                <Heading size="sm" mb={2}>Match Conditions</Heading>
+                <Text>Time: {conditions.time}</Text>
+                <Text>Weather: {conditions.weather}</Text>
+                <Text>Pitch: {conditions.pitch}</Text>
+              </Box>
+              <Divider />
+              <Box>
+                <Heading size="sm" mb={2}>Historical Data</Heading>
+                <Text>Team 1 Toss Win Rate: {historicalData.team1TossWinRate}</Text>
+                <Text>Team 2 Toss Win Rate: {historicalData.team2TossWinRate}</Text>
+                <Text>Venue Pattern: {historicalData.venueTossPattern}</Text>
+              </Box>
+              <Divider />
+              <Box>
+                <Heading size="sm" mb={2}>Reasoning</Heading>
+                <UnorderedList>
+                  {tossPrediction.reasoning.map((reason, index) => (
+                    <ListItem key={index}>{reason}</ListItem>
+                  ))}
+                </UnorderedList>
+              </Box>
+            </Stack>
+          </CardBody>
+        </Card>
+      </Stack>
     );
   };
 
