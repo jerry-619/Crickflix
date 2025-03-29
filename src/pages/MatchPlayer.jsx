@@ -17,9 +17,11 @@ import {
   HStack,
   ButtonGroup,
   Icon,
+  Divider
 } from '@chakra-ui/react';
 import axios from 'axios';
 import VideoPlayer from '../components/VideoPlayer';
+import PredictionTabs from '../components/PredictionTabs';
 import { FiMonitor, FiPlay, FiLink } from 'react-icons/fi';
 
 const MatchPlayer = () => {
@@ -168,22 +170,47 @@ const MatchPlayer = () => {
     );
   }
 
-  // Show countdown for upcoming matches
+  // Show countdown and predictions for upcoming matches
   if (match.status === 'upcoming') {
     return (
       <Box w="100%" minH="calc(100vh - 64px)" bg={bgColor}>
-        <Box maxW="8xl" mx="auto" py={8} px={{ base: 4, md: 6, lg: 8 }}>
-          <Alert status="info" variant="solid" borderRadius="md">
-            <AlertIcon />
-            <AlertTitle>Match Upcoming</AlertTitle>
-            <AlertDescription>
-              {timeLeft ? `This match will start in ${timeLeft}.` : 'This match has not started yet.'}
-            </AlertDescription>
-          </Alert>
-          <Button mt={4} onClick={() => navigate('/')} colorScheme="blue">
-            Go Back Home
-          </Button>
-        </Box>
+        <Container maxW="8xl" py={8}>
+          <VStack spacing={6} align="stretch">
+            <Alert status="info" variant="solid" borderRadius="md">
+              <AlertIcon />
+              <Box>
+                <AlertTitle>Match Upcoming</AlertTitle>
+                <AlertDescription>
+                  {timeLeft ? `This match will start in ${timeLeft}.` : 'This match has not started yet.'}
+                </AlertDescription>
+              </Box>
+            </Alert>
+
+            {/* Match Info */}
+            <Box>
+              <HStack spacing={4} mb={4}>
+                {getStatusBadge(match.status)}
+                <Text color="gray.500">{formatViews(match.views)}</Text>
+              </HStack>
+              <Heading size="lg" mb={2}>{match.title}</Heading>
+              {match.description && (
+                <Text color="gray.600" mb={4}>{match.description}</Text>
+              )}
+            </Box>
+
+            <Divider />
+
+            {/* Predictions Section */}
+            <Box>
+              <Heading size="md" mb={4}>Match Predictions</Heading>
+              <PredictionTabs matchId={match._id} />
+            </Box>
+
+            <Button mt={4} onClick={() => navigate('/')} colorScheme="blue" width="fit-content">
+              Go Back Home
+            </Button>
+          </VStack>
+        </Container>
       </Box>
     );
   }
@@ -264,78 +291,54 @@ const MatchPlayer = () => {
         ))}
       </Box>
 
-      {/* Match Details Section */}
-      <Box w="100%">
-        <Box maxW="8xl" mx="auto" py={8} px={{ base: 4, md: 6, lg: 8 }}>
-          <VStack spacing={6} align="stretch" w="100%">
-            <Box w="100%">
-              <Heading size="xl" color="white" mb={4}>{match.title}</Heading>
-              <Box mb={4} display="flex" alignItems="center" gap={2} flexWrap="wrap">
-                {getStatusBadge(match.status)}
-                {match.isLive && (
-                  <Badge colorScheme="red" variant="solid">
-                    LIVE NOW
-                  </Badge>
-                )}
-                {match.category && (
-                  <Text fontSize="md" color="gray.400">
-                    • {match.category.name}
-                  </Text>
-                )}
-                <Text fontSize="md" color="gray.400">
-                  • {formatViews(match.views)}
-                </Text>
-              </Box>
-            </Box>
+      {/* Match Info & Predictions Section */}
+      <Container maxW="8xl" py={8}>
+        <VStack spacing={6} align="stretch">
+          {/* Match Info */}
+          <Box>
+            <HStack spacing={4} mb={4}>
+              {getStatusBadge(match.status)}
+              <Text color="gray.500">{formatViews(match.views)}</Text>
+            </HStack>
+            <Heading size="lg" mb={2}>{match.title}</Heading>
+            {match.description && (
+              <Text color="gray.600" mb={4}>{match.description}</Text>
+            )}
+          </Box>
 
-            {/* Streaming Sources */}
-            <Box 
-              w="100%"
-              bg="gray.800" 
-              p={6} 
-              borderRadius="lg"
-              border="1px solid"
-              borderColor="gray.700"
-            >
-              <Heading size="md" mb={4} color="gray.100">Streaming Sources</Heading>
-              <ButtonGroup spacing={4} flexWrap="wrap" gap={2}>
+          {/* Stream Source Selection */}
+          {allSources.length > 1 && (
+            <Box>
+              <Text fontWeight="bold" mb={2}>Available Streams:</Text>
+              <ButtonGroup spacing={2} flexWrap="wrap" gap={2}>
                 {allSources.map((source, index) => (
                   <Button
                     key={index}
+                    leftIcon={<Icon as={source.type === 'iframe' ? FiMonitor : FiPlay} />}
                     onClick={() => setSelectedSource(source)}
                     bg={selectedSource?.url === source.url ? buttonActiveBg : buttonBg}
                     color={selectedSource?.url === source.url ? buttonActiveColor : undefined}
-                    _hover={{
-                      bg: selectedSource?.url === source.url ? buttonActiveBg : buttonHoverBg
-                    }}
-                    leftIcon={
-                      source.type === 'iframe' ? <Icon as={FiMonitor} /> :
-                      source.type === 'm3u8' ? <Icon as={FiPlay} /> :
-                      <Icon as={FiLink} />
-                    }
+                    _hover={{ bg: buttonHoverBg }}
+                    size="sm"
                   >
-                    {source.name || `Link ${index + 1}`}
+                    {source.name || `Stream ${index + 1}`}
                   </Button>
                 ))}
               </ButtonGroup>
             </Box>
+          )}
 
-            {match.description && (
-              <Box 
-                w="100%"
-                bg="gray.800" 
-                p={6} 
-                borderRadius="lg"
-                border="1px solid"
-                borderColor="gray.700"
-              >
-                <Heading size="md" mb={3} color="gray.100">Description</Heading>
-                <Text color="gray.300">{match.description}</Text>
-              </Box>
-            )}
-          </VStack>
-        </Box>
-      </Box>
+          <Divider my={4} />
+
+          {/* Predictions Section - Now shown for both upcoming and live matches */}
+          {(match.status === 'upcoming' || match.status === 'live') && (
+            <Box>
+              <Heading size="md" mb={4}>Match Predictions</Heading>
+              <PredictionTabs matchId={match._id} />
+            </Box>
+          )}
+        </VStack>
+      </Container>
     </Box>
   );
 };
