@@ -23,6 +23,7 @@ import axios from 'axios';
 import VideoPlayer from '../components/VideoPlayer';
 import PredictionTabs from '../components/PredictionTabs';
 import { FiMonitor, FiPlay, FiLink } from 'react-icons/fi';
+import moment from 'moment-timezone';
 
 const MatchPlayer = () => {
   const { id } = useParams();
@@ -124,6 +125,8 @@ const MatchPlayer = () => {
     if (views === 1) return '1 view';
     return `${views.toLocaleString()} views`;
   };
+
+  const scheduledTimeIST = match.scheduledTime ? moment(match.scheduledTime).tz('Asia/Kolkata').format('YYYY-MM-DD HH:mm:ss') : 'N/A';
 
   if (loading) {
     return (
