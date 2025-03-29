@@ -127,15 +127,15 @@ const PredictionTabs = ({ matchId }) => {
                 </Flex>
                 <Box>
                   <Text fontSize="sm" fontWeight="medium">Current Form:</Text>
-                  <Text fontSize="sm">{predictions.fantasy.captain.currentForm2025}</Text>
+                  <Text fontSize="sm">{predictions.fantasy.captain.currentForm || 'N/A'}</Text>
                 </Box>
                 <Box>
                   <Text fontSize="sm" fontWeight="medium">Expected Points:</Text>
-                  <Text fontSize="sm">{predictions.fantasy.captain.expectedPoints}</Text>
+                  <Text fontSize="sm">{predictions.fantasy.captain.expectedPoints || '0'}</Text>
                 </Box>
                 <Box>
                   <Text fontSize="sm" fontWeight="medium">Selection Reason:</Text>
-                  <Text fontSize="sm">{predictions.fantasy.captain.reason}</Text>
+                  <Text fontSize="sm">{predictions.fantasy.captain.reason || 'N/A'}</Text>
                 </Box>
               </Stack>
             </CardBody>
@@ -158,15 +158,15 @@ const PredictionTabs = ({ matchId }) => {
                 </Flex>
                 <Box>
                   <Text fontSize="sm" fontWeight="medium">Current Form:</Text>
-                  <Text fontSize="sm">{predictions.fantasy.viceCaptain.currentForm2025}</Text>
+                  <Text fontSize="sm">{predictions.fantasy.viceCaptain.currentForm || 'N/A'}</Text>
                 </Box>
                 <Box>
                   <Text fontSize="sm" fontWeight="medium">Expected Points:</Text>
-                  <Text fontSize="sm">{predictions.fantasy.viceCaptain.expectedPoints}</Text>
+                  <Text fontSize="sm">{predictions.fantasy.viceCaptain.expectedPoints || '0'}</Text>
                 </Box>
                 <Box>
                   <Text fontSize="sm" fontWeight="medium">Selection Reason:</Text>
-                  <Text fontSize="sm">{predictions.fantasy.viceCaptain.reason}</Text>
+                  <Text fontSize="sm">{predictions.fantasy.viceCaptain.reason || 'N/A'}</Text>
                 </Box>
               </Stack>
             </CardBody>
@@ -224,25 +224,25 @@ const PredictionTabs = ({ matchId }) => {
                   <Grid templateColumns="repeat(2, 1fr)" gap={2} fontSize="sm">
                     <Box>
                       <Text fontWeight="medium">Recent Form:</Text>
-                      <Text>{player.recentForm}</Text>
+                      <Text>{player.recentForm || 'N/A'}</Text>
                     </Box>
                     <Box>
-                      <Text fontWeight="medium">Matches (2025):</Text>
-                      <Text>{player.matchesPlayed2025}</Text>
+                      <Text fontWeight="medium">Matches:</Text>
+                      <Text>{player.matchesPlayed || '0'}</Text>
                     </Box>
                   </Grid>
                   <Box fontSize="sm">
-                    <Text fontWeight="medium">Current Stats (2025):</Text>
+                    <Text fontWeight="medium">Current Stats:</Text>
                     <Grid templateColumns="repeat(2, 1fr)" gap={2}>
-                      <Text>Runs: {player.currentStats2025.runs}</Text>
-                      <Text>Wickets: {player.currentStats2025.wickets}</Text>
-                      <Text>Avg: {player.currentStats2025.average}</Text>
-                      <Text>SR: {player.currentStats2025.strikeRate}</Text>
+                      <Text>Runs: {(player.currentStats && player.currentStats.runs) || '0'}</Text>
+                      <Text>Wickets: {(player.currentStats && player.currentStats.wickets) || '0'}</Text>
+                      <Text>Avg: {(player.currentStats && player.currentStats.average) || '0'}</Text>
+                      <Text>SR: {(player.currentStats && player.currentStats.strikeRate) || '0'}</Text>
                     </Grid>
                   </Box>
                   <Box fontSize="sm">
                     <Text fontWeight="medium">Selection Reason:</Text>
-                    <Text>{player.selectionReason}</Text>
+                    <Text>{player.selectionReason || 'N/A'}</Text>
                   </Box>
                 </Stack>
               </CardBody>
