@@ -341,6 +341,8 @@ const PredictionTabs = ({ matchId }) => {
     }
 
     const { matchAnalysis, prediction, team1Stats, team2Stats, venue } = predictions.match;
+    const team1Name = predictions.match.team1?.name || predictions.match.team1 || 'Team 1';
+    const team2Name = predictions.match.team2?.name || predictions.match.team2 || 'Team 2';
 
     return (
       <Stack spacing={4}>
@@ -376,9 +378,9 @@ const PredictionTabs = ({ matchId }) => {
                 <Text mb={4}>Time: {matchAnalysis.conditions.time}</Text>
                 
                 <Heading size="sm" mb={2}>Win Probability</Heading>
-                <Text mb={2}>{predictions.match.team1}: {matchAnalysis.winningProbability.team1}</Text>
+                <Text mb={2}>{team1Name}: {matchAnalysis.winningProbability.team1}</Text>
                 <Progress value={parseInt(matchAnalysis.winningProbability.team1)} colorScheme="blue" mb={4} />
-                <Text mb={2}>{predictions.match.team2}: {matchAnalysis.winningProbability.team2}</Text>
+                <Text mb={2}>{team2Name}: {matchAnalysis.winningProbability.team2}</Text>
                 <Progress value={parseInt(matchAnalysis.winningProbability.team2)} colorScheme="green" />
               </Box>
             </Stack>
@@ -393,7 +395,7 @@ const PredictionTabs = ({ matchId }) => {
               <Grid templateColumns={{ base: "1fr", md: "repeat(2, 1fr)" }} gap={4}>
                 {/* Team 1 Stats */}
                 <Box>
-                  <Heading size="sm" mb={2}>{predictions.match.team1}</Heading>
+                  <Heading size="sm" mb={2}>{team1Name}</Heading>
                   <Text fontSize="sm" mb={2}>Recent Form: {team1Stats.recentForm}</Text>
                   <Text fontSize="sm" mb={2}>Key Players:</Text>
                   <UnorderedList>
@@ -404,7 +406,7 @@ const PredictionTabs = ({ matchId }) => {
                 </Box>
                 {/* Team 2 Stats */}
                 <Box>
-                  <Heading size="sm" mb={2}>{predictions.match.team2}</Heading>
+                  <Heading size="sm" mb={2}>{team2Name}</Heading>
                   <Text fontSize="sm" mb={2}>Recent Form: {team2Stats.recentForm}</Text>
                   <Text fontSize="sm" mb={2}>Key Players:</Text>
                   <UnorderedList>
@@ -469,6 +471,8 @@ const PredictionTabs = ({ matchId }) => {
 
     const { tossPrediction, conditions, historicalData } = predictions.toss;
     const venue = predictions.toss.matchVenue;
+    const tossTeam1Name = predictions.toss.team1?.name || predictions.toss.team1 || 'Team 1';
+    const tossTeam2Name = predictions.toss.team2?.name || predictions.toss.team2 || 'Team 2';
 
     return (
       <Stack spacing={4}>
@@ -528,8 +532,8 @@ const PredictionTabs = ({ matchId }) => {
 
               <Box>
                 <Heading size="sm" mb={2}>Historical Data</Heading>
-                <Text mb={2}>{predictions.toss.team1} Toss Win Rate: {historicalData?.team1TossWinRate || 'N/A'}</Text>
-                <Text mb={2}>{predictions.toss.team2} Toss Win Rate: {historicalData?.team2TossWinRate || 'N/A'}</Text>
+                <Text mb={2}>{tossTeam1Name} Toss Win Rate: {historicalData?.team1TossWinRate || 'N/A'}</Text>
+                <Text mb={2}>{tossTeam2Name} Toss Win Rate: {historicalData?.team2TossWinRate || 'N/A'}</Text>
                 <Text mb={2}>Venue Pattern: {historicalData?.venueTossPattern || 'N/A'}</Text>
                 <Text mb={4}>Venue History: {historicalData?.venueHistory || 'N/A'}</Text>
               </Box>
