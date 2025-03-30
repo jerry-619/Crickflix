@@ -49,6 +49,12 @@ const PredictionTabs = ({ matchId }) => {
   const cardBg = useColorModeValue('white', 'gray.700');
   const borderColor = useColorModeValue('gray.200', 'gray.600');
 
+  useEffect(() => {
+    fetchPrediction('fantasy');
+    fetchPrediction('match');
+    fetchPrediction('toss');
+  }, [matchId]);
+
   const fetchPrediction = async (type) => {
     if (loading[type]) return;
     
@@ -109,15 +115,8 @@ const PredictionTabs = ({ matchId }) => {
     
     if (!predictions.fantasy) {
       return (
-        <Flex direction="column" align="center" justify="center" minH="200px">
-          <Text mb={4}>Generate fantasy XI prediction for this match</Text>
-          <Button
-            colorScheme="blue"
-            onClick={() => fetchPrediction('fantasy')}
-            isLoading={loading.fantasy}
-          >
-            Generate Fantasy XI
-          </Button>
+        <Flex justify="center" align="center" minH="200px">
+          <Spinner size="xl" color="blue.500" thickness="4px" />
         </Flex>
       );
     }
@@ -327,22 +326,45 @@ const PredictionTabs = ({ matchId }) => {
     
     if (!predictions.match) {
       return (
-        <Flex direction="column" align="center" justify="center" minH="200px">
-          <Text mb={4}>Generate match prediction for this match</Text>
-          <Button
-            colorScheme="blue"
-            onClick={() => fetchPrediction('match')}
-            isLoading={loading.match}
-          >
-            Generate Match Prediction
-          </Button>
+        <Flex justify="center" align="center" minH="200px">
+          <Spinner size="xl" color="blue.500" thickness="4px" />
         </Flex>
       );
     }
 
-    const { matchAnalysis, prediction, team1Stats, team2Stats, venue } = predictions.match;
-    const team1Name = predictions.match.team1?.name || predictions.match.team1 || 'Team 1';
-    const team2Name = predictions.match.team2?.name || predictions.match.team2 || 'Team 2';
+    // Destructure with default values to prevent undefined errors
+    const { 
+      matchAnalysis = {
+        conditions: {},
+        winningProbability: { team1: '0', team2: '0' }
+      },
+      prediction = {
+        winner: 'N/A',
+        margin: 'N/A',
+        confidence: 'N/A'
+      },
+      team1Stats = {
+        recentForm: 'N/A',
+        keyPlayers: []
+      },
+      team2Stats = {
+        recentForm: 'N/A',
+        keyPlayers: []
+      },
+      venue = {
+        name: 'N/A',
+        city: 'N/A',
+        country: 'N/A',
+        capacity: 'N/A',
+        date: 'N/A',
+        matchTime: 'N/A',
+        description: 'N/A',
+        knownFor: []
+      }
+    } = predictions.match || {};
+
+    const team1Name = predictions.match?.team1?.name || predictions.match?.team1 || 'Team 1';
+    const team2Name = predictions.match?.team2?.name || predictions.match?.team2 || 'Team 2';
 
     return (
       <Stack spacing={4}>
@@ -353,14 +375,14 @@ const PredictionTabs = ({ matchId }) => {
               <Heading size="md">Match Details</Heading>
               <Box>
                 <Heading size="sm" mb={2}>Venue Information</Heading>
-                <Text mb={2}>Venue: {venue?.name || 'N/A'}</Text>
-                <Text mb={2}>Location: {venue?.city}, {venue?.country}</Text>
-                <Text mb={2}>Capacity: {venue?.capacity || 'N/A'}</Text>
-                <Text mb={2}>Match Date: {venue?.date || 'N/A'}</Text>
-                <Text mb={2}>Match Time: {venue?.matchTime || 'N/A'}</Text>
-                <Text mb={4}>{venue?.description || 'N/A'}</Text>
+                <Text mb={2}>Venue: {venue.name}</Text>
+                <Text mb={2}>Location: {venue.city}, {venue.country}</Text>
+                <Text mb={2}>Capacity: {venue.capacity}</Text>
+                <Text mb={2}>Match Date: {venue.date}</Text>
+                <Text mb={2}>Match Time: {venue.matchTime}</Text>
+                <Text mb={4}>{venue.description}</Text>
                 
-                {venue?.knownFor && venue.knownFor.length > 0 && (
+                {venue.knownFor && venue.knownFor.length > 0 && (
                   <Box mb={4}>
                     <Text fontWeight="medium">Known For:</Text>
                     <UnorderedList>
@@ -373,15 +395,15 @@ const PredictionTabs = ({ matchId }) => {
 
                 <Divider my={4} />
 
-                <Text mb={2}>Conditions: {matchAnalysis.conditions.weather}</Text>
-                <Text mb={2}>Pitch: {matchAnalysis.conditions.pitch}</Text>
-                <Text mb={4}>Time: {matchAnalysis.conditions.time}</Text>
+                <Text mb={2}>Conditions: {matchAnalysis.conditions.weather || 'N/A'}</Text>
+                <Text mb={2}>Pitch: {matchAnalysis.conditions.pitch || 'N/A'}</Text>
+                <Text mb={4}>Time: {matchAnalysis.conditions.time || 'N/A'}</Text>
                 
                 <Heading size="sm" mb={2}>Win Probability</Heading>
-                <Text mb={2}>{team1Name}: {matchAnalysis.winningProbability.team1}</Text>
-                <Progress value={parseInt(matchAnalysis.winningProbability.team1)} colorScheme="blue" mb={4} />
-                <Text mb={2}>{team2Name}: {matchAnalysis.winningProbability.team2}</Text>
-                <Progress value={parseInt(matchAnalysis.winningProbability.team2)} colorScheme="green" />
+                <Text mb={2}>{team1Name}: {matchAnalysis.winningProbability.team1}%</Text>
+                <Progress value={parseInt(matchAnalysis.winningProbability.team1) || 0} colorScheme="blue" mb={4} />
+                <Text mb={2}>{team2Name}: {matchAnalysis.winningProbability.team2}%</Text>
+                <Progress value={parseInt(matchAnalysis.winningProbability.team2) || 0} colorScheme="green" />
               </Box>
             </Stack>
           </CardBody>
@@ -456,15 +478,8 @@ const PredictionTabs = ({ matchId }) => {
     
     if (!predictions.toss) {
       return (
-        <Flex direction="column" align="center" justify="center" minH="200px">
-          <Text mb={4}>Generate toss prediction for this match</Text>
-          <Button
-            colorScheme="blue"
-            onClick={() => fetchPrediction('toss')}
-            isLoading={loading.toss}
-          >
-            Generate Toss Prediction
-          </Button>
+        <Flex justify="center" align="center" minH="200px">
+          <Spinner size="xl" color="blue.500" thickness="4px" />
         </Flex>
       );
     }

@@ -136,25 +136,59 @@ const MatchCard = ({ match }) => {
           </Heading>
         </LinkOverlay>
 
-        <HStack spacing={4} mb={2}>
-          <Flex align="center">
+        <HStack 
+          spacing={{ base: 2, sm: 4 }} 
+          mb={2} 
+          width="100%" 
+          justifyContent="center"
+          px={2}
+        >
+          <Flex 
+            align="center" 
+            flex={{ base: 1, sm: "auto" }}
+            maxW={{ base: "40%", sm: "none" }}
+          >
             <Avatar 
-              size="sm" 
+              size={{ base: "xs", sm: "sm" }}
               src={match.team1?.logo} 
               name={match.team1?.name} 
-              mr={2}
+              mr={1}
             />
-            <Text fontWeight="medium">{match.team1?.name}</Text>
+            <Text 
+              fontWeight="medium" 
+              fontSize={{ base: "sm", sm: "md" }}
+              noOfLines={1}
+              isTruncated
+            >
+              {match.team1?.name}
+            </Text>
           </Flex>
-          <Text fontWeight="bold">vs</Text>
-          <Flex align="center">
+          <Text 
+            fontWeight="bold" 
+            fontSize={{ base: "sm", sm: "md" }}
+            px={1}
+          >
+            vs
+          </Text>
+          <Flex 
+            align="center" 
+            flex={{ base: 1, sm: "auto" }}
+            maxW={{ base: "40%", sm: "none" }}
+          >
             <Avatar 
-              size="sm" 
+              size={{ base: "xs", sm: "sm" }}
               src={match.team2?.logo} 
               name={match.team2?.name} 
-              mr={2}
+              mr={1}
             />
-            <Text fontWeight="medium">{match.team2?.name}</Text>
+            <Text 
+              fontWeight="medium" 
+              fontSize={{ base: "sm", sm: "md" }}
+              noOfLines={1}
+              isTruncated
+            >
+              {match.team2?.name}
+            </Text>
           </Flex>
         </HStack>
 

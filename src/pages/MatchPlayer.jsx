@@ -193,50 +193,106 @@ const MatchPlayer = () => {
 
             {/* Match Info */}
             <Box>
-              <HStack spacing={4} mb={4}>
-                {getStatusBadge(match.status)}
-                <Text color="gray.500">{formatViews(match.views)}</Text>
-              </HStack>
-              <Heading size="lg" mb={4}>{match.title}</Heading>
-              
-              {/* Teams Section */}
-              <HStack spacing={8} mb={6}>
-                <Flex align="center" flex={1} justify="flex-end">
-                  <Avatar 
-                    size="xl" 
-                    src={match.team1?.logo} 
-                    name={match.team1?.name}
-                    mr={4}
-                  />
-                  <Text fontSize="2xl" fontWeight="bold">{match.team1?.name}</Text>
-                </Flex>
-                <Text fontSize="3xl" fontWeight="bold" color="gray.500">VS</Text>
-                <Flex align="center" flex={1}>
-                  <Text fontSize="2xl" fontWeight="bold">{match.team2?.name}</Text>
-                  <Avatar 
-                    size="xl" 
-                    src={match.team2?.logo} 
-                    name={match.team2?.name}
-                    ml={4}
-                  />
-                </Flex>
-              </HStack>
+              <VStack spacing={4} align="stretch">
+                <HStack spacing={4}>
+                  {getStatusBadge(match.status)}
+                  <Text color="gray.500">{formatViews(match.views)}</Text>
+                </HStack>
+                
+                <Heading 
+                  size={{ base: "md", md: "lg" }} 
+                  textAlign={{ base: "center", md: "left" }}
+                >
+                  {match.title}
+                </Heading>
+                
+                {/* Teams Section */}
+                <Box>
+                  <Flex 
+                    direction={{ base: "column", md: "row" }}
+                    align="center"
+                    justify="center"
+                    gap={{ base: 4, md: 8 }}
+                  >
+                    <Flex 
+                      align="center" 
+                      flex={1} 
+                      justify="center"
+                      gap={4}
+                    >
+                      <Avatar 
+                        size={{ base: "lg", md: "xl" }}
+                        src={match.team1?.logo} 
+                        name={match.team1?.name}
+                      />
+                      <Text 
+                        fontSize={{ base: "xl", md: "2xl" }} 
+                        fontWeight="bold"
+                        textAlign="center"
+                      >
+                        {match.team1?.name}
+                      </Text>
+                    </Flex>
 
-              {match.description && (
-                <Text color="gray.600" mb={4}>{match.description}</Text>
-              )}
-              
-              {/* Schedule Info */}
-              <HStack spacing={4} mb={4}>
-                <Text color="gray.500">
-                  Scheduled: {scheduledTimeIST} IST
-                </Text>
-                {timeLeft && (
-                  <Badge colorScheme="blue" variant="subtle">
-                    {timeLeft}
-                  </Badge>
+                    <Text 
+                      fontSize={{ base: "2xl", md: "3xl" }} 
+                      fontWeight="bold" 
+                      color="gray.500"
+                      py={{ base: 2, md: 0 }}
+                    >
+                      VS
+                    </Text>
+
+                    <Flex 
+                      align="center" 
+                      flex={1} 
+                      justify="center"
+                      gap={4}
+                    >
+                      <Text 
+                        fontSize={{ base: "xl", md: "2xl" }} 
+                        fontWeight="bold"
+                        textAlign="center"
+                      >
+                        {match.team2?.name}
+                      </Text>
+                      <Avatar 
+                        size={{ base: "lg", md: "xl" }}
+                        src={match.team2?.logo} 
+                        name={match.team2?.name}
+                      />
+                    </Flex>
+                  </Flex>
+                </Box>
+
+                {match.description && (
+                  <Text 
+                    color="gray.600" 
+                    textAlign={{ base: "center", md: "left" }}
+                  >
+                    {match.description}
+                  </Text>
                 )}
-              </HStack>
+                
+                {/* Schedule Info */}
+                <Flex 
+                  direction={{ base: "column", sm: "row" }}
+                  align={{ base: "center", sm: "flex-start" }}
+                  gap={2}
+                >
+                  <Text 
+                    color="gray.500"
+                    textAlign={{ base: "center", sm: "left" }}
+                  >
+                    Scheduled: {scheduledTimeIST} IST
+                  </Text>
+                  {timeLeft && (
+                    <Badge colorScheme="blue" variant="subtle">
+                      {timeLeft}
+                    </Badge>
+                  )}
+                </Flex>
+              </VStack>
             </Box>
 
             {/* Predictions Section */}
@@ -330,50 +386,106 @@ const MatchPlayer = () => {
         <VStack spacing={6} align="stretch">
           {/* Match Info */}
           <Box>
-            <HStack spacing={4} mb={4}>
-              {getStatusBadge(match.status)}
-              <Text color="gray.500">{formatViews(match.views)}</Text>
-            </HStack>
-            <Heading size="lg" mb={4}>{match.title}</Heading>
-            
-            {/* Teams Section */}
-            <HStack spacing={8} mb={6}>
-              <Flex align="center" flex={1} justify="flex-end">
-                <Avatar 
-                  size="xl" 
-                  src={match.team1?.logo} 
-                  name={match.team1?.name}
-                  mr={4}
-                />
-                <Text fontSize="2xl" fontWeight="bold">{match.team1?.name}</Text>
-              </Flex>
-              <Text fontSize="3xl" fontWeight="bold" color="gray.500">VS</Text>
-              <Flex align="center" flex={1}>
-                <Text fontSize="2xl" fontWeight="bold">{match.team2?.name}</Text>
-                <Avatar 
-                  size="xl" 
-                  src={match.team2?.logo} 
-                  name={match.team2?.name}
-                  ml={4}
-                />
-              </Flex>
-            </HStack>
+            <VStack spacing={4} align="stretch">
+              <HStack spacing={4}>
+                {getStatusBadge(match.status)}
+                <Text color="gray.500">{formatViews(match.views)}</Text>
+              </HStack>
+              
+              <Heading 
+                size={{ base: "md", md: "lg" }} 
+                textAlign={{ base: "center", md: "left" }}
+              >
+                {match.title}
+              </Heading>
+              
+              {/* Teams Section */}
+              <Box>
+                <Flex 
+                  direction={{ base: "column", md: "row" }}
+                  align="center"
+                  justify="center"
+                  gap={{ base: 4, md: 8 }}
+                >
+                  <Flex 
+                    align="center" 
+                    flex={1} 
+                    justify="center"
+                    gap={4}
+                  >
+                    <Avatar 
+                      size={{ base: "lg", md: "xl" }}
+                      src={match.team1?.logo} 
+                      name={match.team1?.name}
+                    />
+                    <Text 
+                      fontSize={{ base: "xl", md: "2xl" }} 
+                      fontWeight="bold"
+                      textAlign="center"
+                    >
+                      {match.team1?.name}
+                    </Text>
+                  </Flex>
 
-            {match.description && (
-              <Text color="gray.600" mb={4}>{match.description}</Text>
-            )}
-            
-            {/* Schedule Info */}
-            <HStack spacing={4} mb={4}>
-              <Text color="gray.500">
-                Scheduled: {scheduledTimeIST} IST
-              </Text>
-              {timeLeft && (
-                <Badge colorScheme="blue" variant="subtle">
-                  {timeLeft}
-                </Badge>
+                  <Text 
+                    fontSize={{ base: "2xl", md: "3xl" }} 
+                    fontWeight="bold" 
+                    color="gray.500"
+                    py={{ base: 2, md: 0 }}
+                  >
+                    VS
+                  </Text>
+
+                  <Flex 
+                    align="center" 
+                    flex={1} 
+                    justify="center"
+                    gap={4}
+                  >
+                    <Text 
+                      fontSize={{ base: "xl", md: "2xl" }} 
+                      fontWeight="bold"
+                      textAlign="center"
+                    >
+                      {match.team2?.name}
+                    </Text>
+                    <Avatar 
+                      size={{ base: "lg", md: "xl" }}
+                      src={match.team2?.logo} 
+                      name={match.team2?.name}
+                    />
+                  </Flex>
+                </Flex>
+              </Box>
+
+              {match.description && (
+                <Text 
+                  color="gray.600" 
+                  textAlign={{ base: "center", md: "left" }}
+                >
+                  {match.description}
+                </Text>
               )}
-            </HStack>
+              
+              {/* Schedule Info */}
+              <Flex 
+                direction={{ base: "column", sm: "row" }}
+                align={{ base: "center", sm: "flex-start" }}
+                gap={2}
+              >
+                <Text 
+                  color="gray.500"
+                  textAlign={{ base: "center", sm: "left" }}
+                >
+                  Scheduled: {scheduledTimeIST} IST
+                </Text>
+                {timeLeft && (
+                  <Badge colorScheme="blue" variant="subtle">
+                    {timeLeft}
+                  </Badge>
+                )}
+              </Flex>
+            </VStack>
           </Box>
 
           {/* Stream Source Selection */}
