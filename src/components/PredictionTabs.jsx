@@ -50,7 +50,7 @@ const PredictionTabs = ({ matchId }) => {
   const borderColor = useColorModeValue('gray.200', 'gray.600');
 
   const fetchPrediction = async (type) => {
-    if (predictions[type] || loading[type]) return;
+    if (loading[type]) return;
     
     setLoading(prev => ({ ...prev, [type]: true }));
     setError(prev => ({ ...prev, [type]: null }));
@@ -84,12 +84,6 @@ const PredictionTabs = ({ matchId }) => {
     fetchPrediction(type);
   };
 
-  useEffect(() => {
-    // Fetch prediction for the selected tab
-    const types = ['fantasy', 'match', 'toss'];
-    fetchPrediction(types[selectedTab]);
-  }, [selectedTab]);
-
   const renderFantasyXI = () => {
     if (loading.fantasy) {
       return (
@@ -113,7 +107,20 @@ const PredictionTabs = ({ matchId }) => {
       );
     }
     
-    if (!predictions.fantasy) return null;
+    if (!predictions.fantasy) {
+      return (
+        <Flex direction="column" align="center" justify="center" minH="200px">
+          <Text mb={4}>Generate fantasy XI prediction for this match</Text>
+          <Button
+            colorScheme="blue"
+            onClick={() => fetchPrediction('fantasy')}
+            isLoading={loading.fantasy}
+          >
+            Generate Fantasy XI
+          </Button>
+        </Flex>
+      );
+    }
 
     return (
       <Stack spacing={6}>
@@ -318,7 +325,20 @@ const PredictionTabs = ({ matchId }) => {
       );
     }
     
-    if (!predictions.match) return null;
+    if (!predictions.match) {
+      return (
+        <Flex direction="column" align="center" justify="center" minH="200px">
+          <Text mb={4}>Generate match prediction for this match</Text>
+          <Button
+            colorScheme="blue"
+            onClick={() => fetchPrediction('match')}
+            isLoading={loading.match}
+          >
+            Generate Match Prediction
+          </Button>
+        </Flex>
+      );
+    }
 
     const { matchAnalysis, prediction, team1Stats, team2Stats, venue } = predictions.match;
 
@@ -330,9 +350,29 @@ const PredictionTabs = ({ matchId }) => {
             <Stack spacing={4}>
               <Heading size="md">Match Details</Heading>
               <Box>
+                <Heading size="sm" mb={2}>Venue Information</Heading>
                 <Text mb={2}>Venue: {venue?.name || 'N/A'}</Text>
                 <Text mb={2}>Location: {venue?.city}, {venue?.country}</Text>
-                <Text mb={2}>Conditions: {matchAnalysis.conditions.weather}, {matchAnalysis.conditions.pitch}</Text>
+                <Text mb={2}>Capacity: {venue?.capacity || 'N/A'}</Text>
+                <Text mb={2}>Match Date: {venue?.date || 'N/A'}</Text>
+                <Text mb={2}>Match Time: {venue?.matchTime || 'N/A'}</Text>
+                <Text mb={4}>{venue?.description || 'N/A'}</Text>
+                
+                {venue?.knownFor && venue.knownFor.length > 0 && (
+                  <Box mb={4}>
+                    <Text fontWeight="medium">Known For:</Text>
+                    <UnorderedList>
+                      {venue.knownFor.map((feature, index) => (
+                        <ListItem key={index}>{feature}</ListItem>
+                      ))}
+                    </UnorderedList>
+                  </Box>
+                )}
+
+                <Divider my={4} />
+
+                <Text mb={2}>Conditions: {matchAnalysis.conditions.weather}</Text>
+                <Text mb={2}>Pitch: {matchAnalysis.conditions.pitch}</Text>
                 <Text mb={4}>Time: {matchAnalysis.conditions.time}</Text>
                 
                 <Heading size="sm" mb={2}>Win Probability</Heading>
@@ -412,9 +452,23 @@ const PredictionTabs = ({ matchId }) => {
       );
     }
     
-    if (!predictions.toss) return null;
+    if (!predictions.toss) {
+      return (
+        <Flex direction="column" align="center" justify="center" minH="200px">
+          <Text mb={4}>Generate toss prediction for this match</Text>
+          <Button
+            colorScheme="blue"
+            onClick={() => fetchPrediction('toss')}
+            isLoading={loading.toss}
+          >
+            Generate Toss Prediction
+          </Button>
+        </Flex>
+      );
+    }
 
-    const { tossPrediction, conditions, historicalData, venue } = predictions.toss;
+    const { tossPrediction, conditions, historicalData } = predictions.toss;
+    const venue = predictions.toss.matchVenue;
 
     return (
       <Stack spacing={4}>
@@ -424,20 +478,35 @@ const PredictionTabs = ({ matchId }) => {
             <Stack spacing={4}>
               <Heading size="md">Toss Prediction</Heading>
               <Box>
+                <Heading size="sm" mb={2}>Venue Information</Heading>
+                <Text mb={2}>Venue: {venue?.name || 'N/A'}</Text>
+                <Text mb={2}>Location: {venue?.city}, {venue?.country}</Text>
+                <Text mb={2}>Capacity: {venue?.capacity || 'N/A'}</Text>
+                <Text mb={2}>Match Date: {venue?.date || 'N/A'}</Text>
+                <Text mb={2}>Match Time: {venue?.matchTime || 'N/A'}</Text>
+                <Text mb={4}>{venue?.description || 'N/A'}</Text>
+                
+                {venue?.knownFor && venue.knownFor.length > 0 && (
+                  <Box mb={4}>
+                    <Text fontWeight="medium">Known For:</Text>
+                    <UnorderedList>
+                      {venue.knownFor.map((feature, index) => (
+                        <ListItem key={index}>{feature}</ListItem>
+                      ))}
+                    </UnorderedList>
+                  </Box>
+                )}
+
+                <Divider my={4} />
+
                 <Text fontSize="lg" mb={2}>
-                  Venue: {venue?.name || 'N/A'}
+                  Likely winner: <Badge colorScheme="purple">{tossPrediction?.winner || 'N/A'}</Badge>
                 </Text>
                 <Text fontSize="lg" mb={2}>
-                  Location: {venue?.city}, {venue?.country}
+                  Expected decision: <Badge colorScheme="orange">{tossPrediction?.choice || 'N/A'}</Badge>
                 </Text>
                 <Text fontSize="lg" mb={2}>
-                  Likely winner: <Badge colorScheme="purple">{tossPrediction.winner}</Badge>
-                </Text>
-                <Text fontSize="lg" mb={2}>
-                  Expected decision: <Badge colorScheme="orange">{tossPrediction.choice}</Badge>
-                </Text>
-                <Text fontSize="lg">
-                  Confidence: {tossPrediction.confidence}
+                  Confidence: {tossPrediction?.confidence || 'N/A'}
                 </Text>
               </Box>
             </Stack>
@@ -450,25 +519,34 @@ const PredictionTabs = ({ matchId }) => {
             <Stack spacing={4}>
               <Box>
                 <Heading size="sm" mb={2}>Match Conditions</Heading>
-                <Text>Time: {conditions.time}</Text>
-                <Text>Weather: {conditions.weather}</Text>
-                <Text>Pitch: {conditions.pitch}</Text>
+                <Text mb={2}>Time: {conditions?.time || 'N/A'}</Text>
+                <Text mb={2}>Weather: {conditions?.weather || 'N/A'}</Text>
+                <Text mb={4}>Pitch: {conditions?.pitch || 'N/A'}</Text>
               </Box>
+
               <Divider />
+
               <Box>
                 <Heading size="sm" mb={2}>Historical Data</Heading>
-                <Text>Team 1 Toss Win Rate: {historicalData.team1TossWinRate}</Text>
-                <Text>Team 2 Toss Win Rate: {historicalData.team2TossWinRate}</Text>
-                <Text>Venue Pattern: {historicalData.venueTossPattern}</Text>
+                <Text mb={2}>{predictions.toss.team1} Toss Win Rate: {historicalData?.team1TossWinRate || 'N/A'}</Text>
+                <Text mb={2}>{predictions.toss.team2} Toss Win Rate: {historicalData?.team2TossWinRate || 'N/A'}</Text>
+                <Text mb={2}>Venue Pattern: {historicalData?.venueTossPattern || 'N/A'}</Text>
+                <Text mb={4}>Venue History: {historicalData?.venueHistory || 'N/A'}</Text>
               </Box>
+
               <Divider />
+
               <Box>
                 <Heading size="sm" mb={2}>Reasoning</Heading>
-                <UnorderedList>
-                  {tossPrediction.reasoning.map((reason, index) => (
-                    <ListItem key={index}>{reason}</ListItem>
-                  ))}
-                </UnorderedList>
+                {tossPrediction?.reasoning && tossPrediction.reasoning.length > 0 ? (
+                  <UnorderedList>
+                    {tossPrediction.reasoning.map((reason, index) => (
+                      <ListItem key={index}>{reason}</ListItem>
+                    ))}
+                  </UnorderedList>
+                ) : (
+                  <Text>No reasoning provided</Text>
+                )}
               </Box>
             </Stack>
           </CardBody>
