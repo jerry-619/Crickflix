@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useParams } from 'react-router-dom';
+import { useParams, useNavigate } from 'react-router-dom';
 import {
   Box,
   Container,
@@ -14,6 +14,7 @@ import {
   AlertDescription,
   useColorModeValue,
   useToast,
+  Button,
 } from '@chakra-ui/react';
 import axios from 'axios';
 import MatchCard from '../components/MatchCard';
@@ -21,6 +22,7 @@ import { useSocket } from '../context/SocketContext';
 
 const CategoryPage = () => {
   const { slug } = useParams();
+  const navigate = useNavigate();
   const [category, setCategory] = useState(null);
   const [matches, setMatches] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -32,28 +34,32 @@ const CategoryPage = () => {
   const overlayBg = useColorModeValue('blackAlpha.500', 'blackAlpha.600');
   const textColor = useColorModeValue('gray.800', 'white');
   const descriptionColor = useColorModeValue('gray.600', 'gray.200');
-  const headingColor = useColorModeValue('gray.800', 'white');
 
   useEffect(() => {
     const fetchData = async () => {
       try {
         setLoading(true);
-        const [categoryRes, matchesRes] = await Promise.all([
-          axios.get(`${import.meta.env.VITE_API_URL}/categories/${slug}`),
-          axios.get(`${import.meta.env.VITE_API_URL}/matches?category=${slug}`)
-        ]);
+        setError(null);
+
+        // First fetch category
+        const categoryRes = await axios.get(`${import.meta.env.VITE_API_URL}/categories/${slug}`);
         setCategory(categoryRes.data);
+
+        // Then fetch matches for this category
+        const matchesRes = await axios.get(`${import.meta.env.VITE_API_URL}/matches?category=${slug}`);
         setMatches(matchesRes.data);
+        
         setLoading(false);
       } catch (err) {
-        setError('Failed to load content');
+        console.error('Error fetching category data:', err);
+        setError(err.response?.data?.message || 'Failed to load content');
         setLoading(false);
       }
     };
 
     fetchData();
 
-    // Match updates for this category
+    // Socket event listeners
     socket.on('matchCreated', (newMatch) => {
       if (newMatch.category.slug === slug) {
         setMatches(prev => [newMatch, ...prev]);
@@ -72,13 +78,6 @@ const CategoryPage = () => {
         setMatches(prev => prev.map(match => 
           match._id === updatedMatch._id ? updatedMatch : match
         ));
-        toast({
-          title: 'Match Updated',
-          description: `${updatedMatch.title} has been updated`,
-          status: 'info',
-          duration: 3000,
-          isClosable: true,
-        });
       } else {
         // Remove match if it was moved to a different category
         setMatches(prev => prev.filter(match => match._id !== updatedMatch._id));
@@ -87,26 +86,11 @@ const CategoryPage = () => {
 
     socket.on('matchDeleted', (matchId) => {
       setMatches(prev => prev.filter(match => match._id !== matchId));
-      toast({
-        title: 'Match Removed',
-        description: 'A match has been removed from this category',
-        status: 'warning',
-        duration: 3000,
-        isClosable: true,
-      });
     });
 
-    // Category updates
     socket.on('categoryUpdated', (updatedCategory) => {
       if (updatedCategory.slug === slug) {
         setCategory(updatedCategory);
-        toast({
-          title: 'Category Updated',
-          description: `${updatedCategory.name} has been updated`,
-          status: 'info',
-          duration: 3000,
-          isClosable: true,
-        });
       }
     });
 
@@ -129,13 +113,20 @@ const CategoryPage = () => {
   if (error || !category) {
     return (
       <Box w="100%" minH="calc(100vh - 64px)" bg={bgColor}>
-        <Box maxW="8xl" mx="auto" py={8} px={{ base: 4, md: 6, lg: 8 }}>
-          <Alert status="error" variant="solid" borderRadius="md">
+        <Container maxW="8xl" py={8}>
+          <Alert status="error" variant="solid" borderRadius="md" mb={4}>
             <AlertIcon />
-            <AlertTitle>Error!</AlertTitle>
-            <AlertDescription>{error || 'Category not found'}</AlertDescription>
+            <Box flex="1">
+              <AlertTitle>Error!</AlertTitle>
+              <AlertDescription display="block">
+                {error || 'Category not found'}
+              </AlertDescription>
+            </Box>
           </Alert>
-        </Box>
+          <Button onClick={() => navigate('/')} colorScheme="blue">
+            Go Back Home
+          </Button>
+        </Container>
       </Box>
     );
   }
@@ -171,41 +162,42 @@ const CategoryPage = () => {
           textAlign="center"
           p={4}
         >
-          <Box maxW="8xl" w="100%" mx="auto" px={{ base: 4, md: 6, lg: 8 }}>
+          <Container maxW="8xl" centerContent>
             <Heading color={textColor} size="2xl" mb={4}>
               {category.name}
             </Heading>
             {category.description && (
-              <Text color={descriptionColor} fontSize={{ base: "lg", md: "xl" }} maxW="3xl" mx="auto">
+              <Text color={descriptionColor} fontSize={{ base: "lg", md: "xl" }} maxW="3xl">
                 {category.description}
               </Text>
             )}
-          </Box>
+          </Container>
         </Box>
       </Box>
 
       {/* Matches Grid */}
-      <Box maxW="8xl" mx="auto" py={8} px={{ base: 4, md: 6, lg: 8 }}>
+      <Container maxW="8xl" py={8}>
         {matches.length === 0 ? (
           <Alert status="info" variant="solid" borderRadius="md">
             <AlertIcon />
-            <AlertTitle>No Matches</AlertTitle>
-            <AlertDescription>
-              No matches available in this category.
-            </AlertDescription>
+            <Box flex="1">
+              <AlertTitle>No Matches</AlertTitle>
+              <AlertDescription display="block">
+                No matches available in this category at the moment.
+              </AlertDescription>
+            </Box>
           </Alert>
         ) : (
           <SimpleGrid 
             columns={{ base: 1, sm: 2, md: 3, lg: 4 }} 
             spacing={{ base: 4, md: 6 }}
-            w="100%"
           >
             {matches.map(match => (
               <MatchCard key={match._id} match={match} />
             ))}
           </SimpleGrid>
         )}
-      </Box>
+      </Container>
     </Box>
   );
 };
