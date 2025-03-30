@@ -1,4 +1,4 @@
-import { Box, Image, Heading, Text, Badge, LinkBox, LinkOverlay, Flex, useToast } from '@chakra-ui/react';
+import { Box, Image, Heading, Text, Badge, LinkBox, LinkOverlay, Flex, useToast, HStack, Avatar } from '@chakra-ui/react';
 import { Link as RouterLink } from 'react-router-dom';
 import { useState, useEffect } from 'react';
 
@@ -135,6 +135,28 @@ const MatchCard = ({ match }) => {
             {match.title}
           </Heading>
         </LinkOverlay>
+
+        <HStack spacing={4} mb={2}>
+          <Flex align="center">
+            <Avatar 
+              size="sm" 
+              src={match.team1?.logo} 
+              name={match.team1?.name} 
+              mr={2}
+            />
+            <Text fontWeight="medium">{match.team1?.name}</Text>
+          </Flex>
+          <Text fontWeight="bold">vs</Text>
+          <Flex align="center">
+            <Avatar 
+              size="sm" 
+              src={match.team2?.logo} 
+              name={match.team2?.name} 
+              mr={2}
+            />
+            <Text fontWeight="medium">{match.team2?.name}</Text>
+          </Flex>
+        </HStack>
 
         {match.description && (
           <Text noOfLines={2} color="gray.600">

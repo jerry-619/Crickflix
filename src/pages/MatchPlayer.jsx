@@ -17,7 +17,9 @@ import {
   HStack,
   ButtonGroup,
   Icon,
-  Divider
+  Divider,
+  Avatar,
+  Flex
 } from '@chakra-ui/react';
 import axios from 'axios';
 import VideoPlayer from '../components/VideoPlayer';
@@ -195,23 +197,52 @@ const MatchPlayer = () => {
                 {getStatusBadge(match.status)}
                 <Text color="gray.500">{formatViews(match.views)}</Text>
               </HStack>
-              <Heading size="lg" mb={2}>{match.title}</Heading>
+              <Heading size="lg" mb={4}>{match.title}</Heading>
+              
+              {/* Teams Section */}
+              <HStack spacing={8} mb={6}>
+                <Flex align="center" flex={1} justify="flex-end">
+                  <Avatar 
+                    size="xl" 
+                    src={match.team1?.logo} 
+                    name={match.team1?.name}
+                    mr={4}
+                  />
+                  <Text fontSize="2xl" fontWeight="bold">{match.team1?.name}</Text>
+                </Flex>
+                <Text fontSize="3xl" fontWeight="bold" color="gray.500">VS</Text>
+                <Flex align="center" flex={1}>
+                  <Text fontSize="2xl" fontWeight="bold">{match.team2?.name}</Text>
+                  <Avatar 
+                    size="xl" 
+                    src={match.team2?.logo} 
+                    name={match.team2?.name}
+                    ml={4}
+                  />
+                </Flex>
+              </HStack>
+
               {match.description && (
                 <Text color="gray.600" mb={4}>{match.description}</Text>
               )}
+              
+              {/* Schedule Info */}
+              <HStack spacing={4} mb={4}>
+                <Text color="gray.500">
+                  Scheduled: {scheduledTimeIST} IST
+                </Text>
+                {timeLeft && (
+                  <Badge colorScheme="blue" variant="subtle">
+                    {timeLeft}
+                  </Badge>
+                )}
+              </HStack>
             </Box>
-
-            <Divider />
 
             {/* Predictions Section */}
             <Box>
-              <Heading size="md" mb={4}>Match Predictions</Heading>
-              <PredictionTabs matchId={match._id} />
+              <PredictionTabs matchId={id} />
             </Box>
-
-            <Button mt={4} onClick={() => navigate('/')} colorScheme="blue" width="fit-content">
-              Go Back Home
-            </Button>
           </VStack>
         </Container>
       </Box>
@@ -303,10 +334,46 @@ const MatchPlayer = () => {
               {getStatusBadge(match.status)}
               <Text color="gray.500">{formatViews(match.views)}</Text>
             </HStack>
-            <Heading size="lg" mb={2}>{match.title}</Heading>
+            <Heading size="lg" mb={4}>{match.title}</Heading>
+            
+            {/* Teams Section */}
+            <HStack spacing={8} mb={6}>
+              <Flex align="center" flex={1} justify="flex-end">
+                <Avatar 
+                  size="xl" 
+                  src={match.team1?.logo} 
+                  name={match.team1?.name}
+                  mr={4}
+                />
+                <Text fontSize="2xl" fontWeight="bold">{match.team1?.name}</Text>
+              </Flex>
+              <Text fontSize="3xl" fontWeight="bold" color="gray.500">VS</Text>
+              <Flex align="center" flex={1}>
+                <Text fontSize="2xl" fontWeight="bold">{match.team2?.name}</Text>
+                <Avatar 
+                  size="xl" 
+                  src={match.team2?.logo} 
+                  name={match.team2?.name}
+                  ml={4}
+                />
+              </Flex>
+            </HStack>
+
             {match.description && (
               <Text color="gray.600" mb={4}>{match.description}</Text>
             )}
+            
+            {/* Schedule Info */}
+            <HStack spacing={4} mb={4}>
+              <Text color="gray.500">
+                Scheduled: {scheduledTimeIST} IST
+              </Text>
+              {timeLeft && (
+                <Badge colorScheme="blue" variant="subtle">
+                  {timeLeft}
+                </Badge>
+              )}
+            </HStack>
           </Box>
 
           {/* Stream Source Selection */}
@@ -336,8 +403,7 @@ const MatchPlayer = () => {
           {/* Predictions Section - Now shown for both upcoming and live matches */}
           {(match.status === 'upcoming' || match.status === 'live') && (
             <Box>
-              <Heading size="md" mb={4}>Match Predictions</Heading>
-              <PredictionTabs matchId={match._id} />
+              <PredictionTabs matchId={id} />
             </Box>
           )}
         </VStack>
