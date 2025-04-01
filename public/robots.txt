@@ -15,4 +15,4 @@ Disallow: /uploads/
 # Crawl-delay for all bots
 Crawl-delay: 1
 
-Sitemap: https://crickflix.com/sitemap.xml 
+Sitemap: https://crickflix.vercel.app/sitemap.xml 
