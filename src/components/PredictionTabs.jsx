@@ -27,6 +27,7 @@ import {
   ListItem
 } from '@chakra-ui/react';
 import axios from 'axios';
+import LiveScore from './LiveScore';
 
 const PredictionTabs = ({ matchId }) => {
   const [predictions, setPredictions] = useState({
@@ -575,18 +576,38 @@ const PredictionTabs = ({ matchId }) => {
   };
 
   return (
-    <Tabs isFitted variant="enclosed" colorScheme="blue" index={selectedTab} onChange={setSelectedTab}>
-      <TabList mb="1em">
-        <Tab>Fantasy XI</Tab>
-        <Tab>Match Prediction</Tab>
-        <Tab>Toss Prediction</Tab>
-      </TabList>
-      <TabPanels>
-        <TabPanel>{renderFantasyXI()}</TabPanel>
-        <TabPanel>{renderMatchPrediction()}</TabPanel>
-        <TabPanel>{renderTossPrediction()}</TabPanel>
-      </TabPanels>
-    </Tabs>
+    <Box>
+      {/* Prediction Tabs */}
+      <Tabs 
+        variant="enclosed" 
+        onChange={setSelectedTab} 
+        defaultIndex={0}
+        colorScheme="blue"
+        width="100%"
+      >
+        <TabList display="flex" width="100%">
+          <Tab flex="1" fontSize={{ base: "sm", md: "md" }} fontWeight="semibold">Live Score</Tab>
+          <Tab flex="1" fontSize={{ base: "sm", md: "md" }} fontWeight="semibold">Fantasy XI</Tab>
+          <Tab flex="1" fontSize={{ base: "sm", md: "md" }} fontWeight="semibold">Match</Tab>
+          <Tab flex="1" fontSize={{ base: "sm", md: "md" }} fontWeight="semibold">Toss</Tab>
+        </TabList>
+
+        <TabPanels>
+          <TabPanel p={0} pt={4}>
+            <LiveScore />
+          </TabPanel>
+          <TabPanel p={0} pt={4}>
+            {renderFantasyXI()}
+          </TabPanel>
+          <TabPanel p={0} pt={4}>
+            {renderMatchPrediction()}
+          </TabPanel>
+          <TabPanel p={0} pt={4}>
+            {renderTossPrediction()}
+          </TabPanel>
+        </TabPanels>
+      </Tabs>
+    </Box>
   );
 };
 
