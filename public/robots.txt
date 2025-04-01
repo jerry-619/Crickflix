@@ -1,15 +1,18 @@
 # https://www.robotstxt.org/robotstxt.html
 User-agent: *
 Allow: /
-Allow: /blogs
-Allow: /category/*
-Allow: /blog/*
+Allow: /match/
+Allow: /category/
+Allow: /blogs/
+Allow: /live/
 
 # Disallow admin routes and API endpoints
-Disallow: /admin
 Disallow: /api/
-Disallow: /login
-Disallow: /register
+Disallow: /admin/
+Disallow: /private/
+Disallow: /uploads/
 
 # Crawl-delay for all bots
-Crawl-delay: 1 
+Crawl-delay: 1
+
+Sitemap: https://crickflix.com/sitemap.xml 

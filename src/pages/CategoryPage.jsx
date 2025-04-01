@@ -19,6 +19,7 @@ import {
 import axios from 'axios';
 import MatchCard from '../components/MatchCard';
 import { useSocket } from '../context/SocketContext';
+import SEO from '../components/SEO';
 
 const CategoryPage = () => {
   const { slug } = useParams();
@@ -102,6 +103,34 @@ const CategoryPage = () => {
     };
   }, [slug, socket, toast]);
 
+  // Generate structured data for the category page
+  const getStructuredData = () => {
+    if (!category) return null;
+
+    return {
+      "@context": "https://schema.org",
+      "@type": "CollectionPage",
+      "name": category.name,
+      "description": category.description,
+      "image": category.thumbnail,
+      "url": `${import.meta.env.VITE_FRONTEND_URL}/category/${category.slug}`,
+      "mainEntity": {
+        "@type": "ItemList",
+        "itemListElement": matches.map((match, index) => ({
+          "@type": "ListItem",
+          "position": index + 1,
+          "item": {
+            "@type": "SportsEvent",
+            "name": match.title,
+            "url": `${import.meta.env.VITE_FRONTEND_URL}/match/${match._id}`,
+            "startDate": match.scheduledTime,
+            "endDate": match.endTime
+          }
+        }))
+      }
+    };
+  };
+
   if (loading) {
     return (
       <Box w="100%" minH="calc(100vh - 64px)" bg={bgColor} display="flex" justifyContent="center" alignItems="center">
@@ -132,73 +161,85 @@ const CategoryPage = () => {
   }
 
   return (
-    <Box w="100%" minH="calc(100vh - 64px)" bg={bgColor}>
-      {/* Category Banner */}
-      <Box 
-        w="100%" 
-        h={{ base: "200px", md: "300px", lg: "400px" }}
-        position="relative" 
-        overflow="hidden"
-      >
-        <Image
-          src={category.thumbnail}
-          alt={category.name}
-          objectFit="cover"
-          w="100%"
-          h="100%"
-          fallbackSrc="https://via.placeholder.com/1920x400?text=Category"
-        />
-        <Box
-          position="absolute"
-          top={0}
-          left={0}
-          right={0}
-          bottom={0}
-          bg={overlayBg}
-          display="flex"
-          alignItems="center"
-          justifyContent="center"
-          flexDirection="column"
-          textAlign="center"
-          p={4}
+    <>
+      <SEO
+        title={category.name}
+        description={category.description}
+        keywords={`${category.name}, cricket matches, live cricket, cricket streaming, ${category.name} matches`}
+        ogTitle={`${category.name} - Cricket Matches on CrickFlix`}
+        ogDescription={category.description}
+        ogImage={category.thumbnail}
+        canonicalUrl={`${import.meta.env.VITE_FRONTEND_URL}/category/${category.slug}`}
+        structuredData={getStructuredData()}
+      />
+      <Box w="100%" minH="calc(100vh - 64px)" bg={bgColor}>
+        {/* Category Banner */}
+        <Box 
+          w="100%" 
+          h={{ base: "200px", md: "300px", lg: "400px" }}
+          position="relative" 
+          overflow="hidden"
         >
-          <Container maxW="8xl" centerContent>
-            <Heading color={textColor} size="2xl" mb={4}>
-              {category.name}
-            </Heading>
-            {category.description && (
-              <Text color={descriptionColor} fontSize={{ base: "lg", md: "xl" }} maxW="3xl">
-                {category.description}
-              </Text>
-            )}
-          </Container>
-        </Box>
-      </Box>
-
-      {/* Matches Grid */}
-      <Container maxW="8xl" py={8}>
-        {matches.length === 0 ? (
-          <Alert status="info" variant="solid" borderRadius="md">
-            <AlertIcon />
-            <Box flex="1">
-              <AlertTitle>No Matches</AlertTitle>
-              <AlertDescription display="block">
-                No matches available in this category at the moment.
-              </AlertDescription>
-            </Box>
-          </Alert>
-        ) : (
-          <SimpleGrid 
-            columns={{ base: 1, sm: 2, md: 3, lg: 4 }} 
-            spacing={{ base: 4, md: 6 }}
+          <Image
+            src={category.thumbnail}
+            alt={category.name}
+            objectFit="cover"
+            w="100%"
+            h="100%"
+            fallbackSrc="https://via.placeholder.com/1920x400?text=Category"
+          />
+          <Box
+            position="absolute"
+            top={0}
+            left={0}
+            right={0}
+            bottom={0}
+            bg={overlayBg}
+            display="flex"
+            alignItems="center"
+            justifyContent="center"
+            flexDirection="column"
+            textAlign="center"
+            p={4}
           >
-            {matches.map(match => (
-              <MatchCard key={match._id} match={match} />
-            ))}
-          </SimpleGrid>
-        )}
-      </Container>
-    </Box>
+            <Container maxW="8xl" centerContent>
+              <Heading color={textColor} size="2xl" mb={4}>
+                {category.name}
+              </Heading>
+              {category.description && (
+                <Text color={descriptionColor} fontSize={{ base: "lg", md: "xl" }} maxW="3xl">
+                  {category.description}
+                </Text>
+              )}
+            </Container>
+          </Box>
+        </Box>
+
+        {/* Matches Grid */}
+        <Container maxW="8xl" py={8}>
+          {matches.length === 0 ? (
+            <Alert status="info" variant="solid" borderRadius="md">
+              <AlertIcon />
+              <Box flex="1">
+                <AlertTitle>No Matches</AlertTitle>
+                <AlertDescription display="block">
+                  No matches available in this category at the moment.
+                </AlertDescription>
+              </Box>
+            </Alert>
+          ) : (
+            <SimpleGrid 
+              columns={{ base: 1, sm: 2, md: 3, lg: 4 }} 
+              spacing={{ base: 4, md: 6 }}
+            >
+              {matches.map(match => (
+                <MatchCard key={match._id} match={match} />
+              ))}
+            </SimpleGrid>
+          )}
+        </Container>
+      </Box>
+    </>
   );
 };
 
