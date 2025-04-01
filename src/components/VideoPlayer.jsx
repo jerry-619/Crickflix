@@ -2,16 +2,15 @@ import { useEffect, useRef, useState } from 'react';
 import Hls from 'hls.js';
 import {
   Box,
-  AspectRatio,
   Menu,
   MenuButton,
   MenuList,
   MenuItem,
   Button,
-  HStack,
-  Text,
+  useColorModeValue,
 } from '@chakra-ui/react';
 import { ChevronDownIcon } from '@chakra-ui/icons';
+import 'media-chrome';
 
 const VideoPlayer = ({ url }) => {
   const videoRef = useRef(null);
@@ -44,7 +43,7 @@ const VideoPlayer = ({ url }) => {
         }
 
         const hls = new Hls({
-          debug: true,
+          debug: false,
           enableWorker: true,
           lowLatencyMode: true,
           backBufferLength: 90,
@@ -64,21 +63,13 @@ const VideoPlayer = ({ url }) => {
           }
         });
 
-        hls.on(Hls.Events.MEDIA_ATTACHED, () => {
-          console.log('HLS Media attached');
-        });
-
         hls.on(Hls.Events.MANIFEST_PARSED, (event, data) => {
-          console.log('HLS Manifest parsed, found ' + data.levels.length + ' quality levels');
-          
-          // Set available quality levels only if there are multiple qualities
           const qualityLevels = data.levels.map((level, index) => ({
             index,
             height: level.height || level.width?.height,
             bitrate: level.bitrate
-          })).filter(level => level.height); // Only include levels with height
+          })).filter(level => level.height);
 
-          // Only set qualities if there are multiple quality levels
           if (qualityLevels.length > 1) {
             setQualities(qualityLevels);
             setCurrentQuality(hls.currentLevel);
@@ -86,7 +77,6 @@ const VideoPlayer = ({ url }) => {
             setQualities([]);
           }
 
-          // Set available audio tracks
           const tracks = hls.audioTracks || [];
           setAudioTracks(tracks);
           setCurrentAudio(hls.audioTrack);
@@ -105,19 +95,15 @@ const VideoPlayer = ({ url }) => {
         });
 
         hls.on(Hls.Events.ERROR, (event, data) => {
-          console.error('HLS Error:', data);
           if (data.fatal) {
             switch (data.type) {
               case Hls.ErrorTypes.NETWORK_ERROR:
-                console.log('Network error, trying to recover...');
                 hls.startLoad();
                 break;
               case Hls.ErrorTypes.MEDIA_ERROR:
-                console.log('Media error, trying to recover...');
                 hls.recoverMediaError();
                 break;
               default:
-                console.log('Unrecoverable error');
                 hls.destroy();
                 break;
             }
@@ -129,7 +115,6 @@ const VideoPlayer = ({ url }) => {
         hlsRef.current = hls;
 
       } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
-        // For Safari
         video.src = url;
         video.addEventListener('loadedmetadata', () => {
           video.play().catch(error => {
@@ -149,99 +134,117 @@ const VideoPlayer = ({ url }) => {
     };
   }, [url]);
 
-  return (
-    <Box width="100vw" height="100%" bg="black" position="relative" left="50%" transform="translateX(-50%)">
-      <AspectRatio ratio={16/9} width="100vw" maxW="100vw">
-        <Box position="relative">
-          <video
-            ref={videoRef}
-            controls
-            playsInline
-            style={{
-              width: '100vw',
-              height: '100%',
-              backgroundColor: 'black',
-              maxWidth: '100vw',
-            }}
-          />
-          
-          {/* Quality and Audio Controls */}
-          <HStack 
-            position="absolute" 
-            bottom="100px"
-            right="20px" 
-            spacing={3}
-            bg="rgba(0,0,0,0.8)"
-            p={3}
-            borderRadius="lg"
-            boxShadow="0 0 10px rgba(0,0,0,0.5)"
-            zIndex={1000}
-            display={(qualities.length > 1 || audioTracks.length > 1) ? "flex" : "none"}
-          >
-            {qualities.length > 1 && (
-              <Box>
-                <Text color="white" fontSize="sm" mb={1}>Quality</Text>
-                <Menu>
-                  <MenuButton 
-                    as={Button} 
-                    rightIcon={<ChevronDownIcon />} 
-                    size="md"
-                    colorScheme="blue"
-                    width="120px"
-                  >
-                    {currentQuality === -1 ? 'Auto' : `${qualities[currentQuality]?.height}p`}
-                  </MenuButton>
-                  <MenuList>
-                    <MenuItem 
-                      onClick={() => handleQualityChange(-1)}
-                      fontWeight={currentQuality === -1 ? "bold" : "normal"}
-                    >
-                      Auto
-                    </MenuItem>
-                    {qualities.map((quality) => (
-                      <MenuItem 
-                        key={quality.index} 
-                        onClick={() => handleQualityChange(quality.index)}
-                        fontWeight={currentQuality === quality.index ? "bold" : "normal"}
-                      >
-                        {quality.height}p ({Math.round(quality.bitrate / 1000)} kbps)
-                      </MenuItem>
-                    ))}
-                  </MenuList>
-                </Menu>
-              </Box>
-            )}
+  const primaryColor = useColorModeValue('white', 'white');
+  const menuBg = useColorModeValue('white', 'gray.700');
 
-            {audioTracks.length > 1 && (
-              <Box>
-                <Text color="white" fontSize="sm" mb={1}>Audio</Text>
-                <Menu>
-                  <MenuButton 
-                    as={Button} 
-                    rightIcon={<ChevronDownIcon />} 
-                    size="md"
-                    colorScheme="green"
-                    width="120px"
-                  >
-                    {audioTracks[currentAudio]?.name || 'Audio'}
-                  </MenuButton>
-                  <MenuList>
-                    {audioTracks.map((track, index) => (
-                      <MenuItem 
-                        key={track.id} 
-                        onClick={() => handleAudioChange(index)}
-                        fontWeight={currentAudio === index ? "bold" : "normal"}
-                      >
-                        {track.name}
-                      </MenuItem>
-                    ))}
-                  </MenuList>
-                </Menu>
-              </Box>
-            )}
-          </HStack>
-        </Box>
-      </AspectRatio>
+  return (
+    <Box width="100%" maxW="100vw" bg="black" position="relative">
+      <media-controller
+        style={{
+          width: '100%',
+          aspectRatio: '16/9',
+          '--media-primary-color': 'white',
+          '--media-secondary-color': 'rgba(255, 255, 255, 0.7)',
+          '--media-loading-icon-color': 'white',
+          '--media-control-background': 'rgba(0, 0, 0, 0.7)',
+          '--media-control-hover-background': 'rgba(0, 0, 0, 0.85)',
+          '--media-time-range-buffered-color': 'rgba(255, 255, 255, 0.4)',
+          '--media-range-thumb-color': 'white',
+          '--media-range-track-color': 'rgba(255, 255, 255, 0.2)',
+          '--media-button-icon-color': 'white',
+          '--media-button-icon-hover-color': 'rgba(255, 255, 255, 0.9)',
+          '--media-button-icon-active-color': 'rgba(255, 255, 255, 0.8)',
+          '--media-time-display-color': 'white',
+        }}
+      >
+        <video
+          ref={videoRef}
+          slot="media"
+          playsInline
+          crossOrigin="anonymous"
+          style={{
+            width: '100%',
+            height: '100%',
+            backgroundColor: 'black',
+          }}
+        />
+
+        {/* Media Chrome Controls */}
+        <media-control-bar>
+          <media-play-button></media-play-button>
+          <media-seek-backward-button seek-offset="10"></media-seek-backward-button>
+          <media-seek-forward-button seek-offset="10"></media-seek-forward-button>
+          <media-time-range></media-time-range>
+          <media-time-display></media-time-display>
+          <media-mute-button></media-mute-button>
+          <media-volume-range></media-volume-range>
+          
+          {/* Quality Selection */}
+          {qualities.length > 1 && (
+            <Box mx={2} position="relative" display="inline-block">
+              <Menu>
+                <MenuButton
+                  as={Button}
+                  size="sm"
+                  rightIcon={<ChevronDownIcon />}
+                  bg="transparent"
+                  color="white"
+                  _hover={{ bg: 'whiteAlpha.200' }}
+                  _active={{ bg: 'whiteAlpha.300' }}
+                >
+                  {currentQuality === -1 ? 'Auto' : `${qualities[currentQuality]?.height}p`}
+                </MenuButton>
+                <MenuList bg={menuBg}>
+                  <MenuItem onClick={() => handleQualityChange(-1)}>
+                    Auto
+                  </MenuItem>
+                  {qualities.map((quality) => (
+                    <MenuItem
+                      key={quality.index}
+                      onClick={() => handleQualityChange(quality.index)}
+                    >
+                      {quality.height}p ({Math.round(quality.bitrate / 1000)} kbps)
+                    </MenuItem>
+                  ))}
+                </MenuList>
+              </Menu>
+            </Box>
+          )}
+
+          {/* Audio Track Selection */}
+          {audioTracks.length > 1 && (
+            <Box mx={2} position="relative" display="inline-block">
+              <Menu>
+                <MenuButton
+                  as={Button}
+                  size="sm"
+                  rightIcon={<ChevronDownIcon />}
+                  bg="transparent"
+                  color="white"
+                  _hover={{ bg: 'whiteAlpha.200' }}
+                  _active={{ bg: 'whiteAlpha.300' }}
+                >
+                  {audioTracks[currentAudio]?.name || 'Audio'}
+                </MenuButton>
+                <MenuList bg={menuBg}>
+                  {audioTracks.map((track, index) => (
+                    <MenuItem
+                      key={track.id}
+                      onClick={() => handleAudioChange(index)}
+                    >
+                      {track.name}
+                    </MenuItem>
+                  ))}
+                </MenuList>
+              </Menu>
+            </Box>
+          )}
+
+          <media-playback-rate-button></media-playback-rate-button>
+          <media-pip-button></media-pip-button>
+          <media-fullscreen-button></media-fullscreen-button>
+        </media-control-bar>
+      </media-controller>
     </Box>
   );
 };
