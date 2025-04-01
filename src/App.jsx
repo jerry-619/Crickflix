@@ -7,6 +7,7 @@ import AppRoutes from './routes';
 import { SocketProvider } from './context/SocketContext';
 import TelegramPopup from './components/TelegramPopup';
 import SEO from './components/SEO';
+import { Analytics } from '@vercel/analytics/react';
 
 const App = () => {
   
@@ -21,6 +22,7 @@ const App = () => {
               <AppRoutes />
               <TelegramPopup />
             </Box>
+            <Analytics />
           </Router>
         </SocketProvider>
       </ChakraProvider>
