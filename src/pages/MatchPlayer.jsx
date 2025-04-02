@@ -190,6 +190,7 @@ const MatchPlayer = () => {
     );
   }
 
+  const scheduledTimeLocal = match?.scheduledTime ? moment(match.scheduledTime).local().format('YYYY-MM-DD HH:mm:ss') : 'N/A';
   const scheduledTimeIST = match?.scheduledTime ? moment(match.scheduledTime).tz('Asia/Kolkata').format('YYYY-MM-DD HH:mm:ss') : 'N/A';
 
   // Prevent access to completed matches
@@ -262,16 +263,10 @@ const MatchPlayer = () => {
                       gap={{ base: 4, md: 8 }}
                     >
                       <Flex 
-                        align="center" 
-                        flex={1} 
-                        justify="center"
-                        gap={4}
+                        direction="column"
+                        align="center"
+                        flex="1"
                       >
-                        <Avatar 
-                          size={{ base: "lg", md: "xl" }}
-                          src={match.team1?.logo} 
-                          name={match.team1?.name}
-                        />
                         <Text 
                           fontSize={{ base: "xl", md: "2xl" }} 
                           fontWeight="bold"
@@ -279,22 +274,25 @@ const MatchPlayer = () => {
                         >
                           {match.team1?.name}
                         </Text>
+                        <Avatar 
+                          size={{ base: "lg", md: "xl" }}
+                          src={match.team1?.logo} 
+                          name={match.team1?.name}
+                        />
                       </Flex>
-
+                      
                       <Text 
-                        fontSize={{ base: "2xl", md: "3xl" }} 
-                        fontWeight="bold" 
-                        color="gray.500"
-                        py={{ base: 2, md: 0 }}
+                        fontSize={{ base: "xl", md: "2xl" }} 
+                        fontWeight="bold"
+                        alignSelf="center"
                       >
                         VS
                       </Text>
-
+                      
                       <Flex 
-                        align="center" 
-                        flex={1} 
-                        justify="center"
-                        gap={4}
+                        direction="column"
+                        align="center"
+                        flex="1"
                       >
                         <Text 
                           fontSize={{ base: "xl", md: "2xl" }} 
@@ -322,23 +320,22 @@ const MatchPlayer = () => {
                   )}
                   
                   {/* Schedule Info */}
-                  <Flex 
-                    direction={{ base: "column", sm: "row" }}
+                  <VStack 
                     align={{ base: "center", sm: "flex-start" }}
-                    gap={2}
+                    spacing={2}
                   >
                     <Text 
                       color="gray.500"
                       textAlign={{ base: "center", sm: "left" }}
                     >
-                      Scheduled: {scheduledTimeIST} IST
+                      Your Local Time: {scheduledTimeLocal}
                     </Text>
                     {timeLeft && (
                       <Badge colorScheme="blue" variant="subtle">
                         {timeLeft}
                       </Badge>
                     )}
-                  </Flex>
+                  </VStack>
                 </VStack>
               </Box>
 

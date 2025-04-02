@@ -1,6 +1,7 @@
 import { Box, Image, Heading, Text, Badge, LinkBox, LinkOverlay, Flex, useToast, HStack, Avatar } from '@chakra-ui/react';
 import { Link as RouterLink } from 'react-router-dom';
 import { useState, useEffect } from 'react';
+import moment from 'moment';
 
 const MatchCard = ({ match }) => {
   const [timeLeft, setTimeLeft] = useState('');
@@ -35,6 +36,11 @@ const MatchCard = ({ match }) => {
     if (days > 0) return `${days}d ${hours}h left`;
     if (hours > 0) return `${hours}h ${minutes}m left`;
     return `${minutes}m left`;
+  };
+
+  const getLocalTime = () => {
+    if (!match.scheduledTime) return '';
+    return moment(match.scheduledTime).local().format('DD MMM, hh:mm A');
   };
 
   useEffect(() => {
@@ -135,6 +141,12 @@ const MatchCard = ({ match }) => {
             {match.title}
           </Heading>
         </LinkOverlay>
+
+        {match.status === 'upcoming' && (
+          <Text fontSize="sm" color="gray.600" mb={2}>
+            {getLocalTime()}
+          </Text>
+        )}
 
         <HStack 
           spacing={{ base: 2, sm: 4 }} 
