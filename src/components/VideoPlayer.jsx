@@ -8,6 +8,7 @@ import {
   MenuItem,
   Button,
   useColorModeValue,
+  useBreakpointValue,
 } from '@chakra-ui/react';
 import { ChevronDownIcon } from '@chakra-ui/icons';
 import 'media-chrome';
@@ -19,6 +20,16 @@ const VideoPlayer = ({ url }) => {
   const [currentQuality, setCurrentQuality] = useState(-1);
   const [audioTracks, setAudioTracks] = useState([]);
   const [currentAudio, setCurrentAudio] = useState(-1);
+
+  // Responsive controls based on screen size
+  const showVolumeRange = useBreakpointValue({ base: false, md: true });
+  const showTimeDisplay = useBreakpointValue({ base: false, sm: true });
+  const showPlaybackRate = useBreakpointValue({ base: false, sm: true });
+  const buttonSize = useBreakpointValue({ base: "xs", sm: "sm" });
+  const controlsSpacing = useBreakpointValue({ base: "0.5rem", sm: "1rem" });
+
+  // Check if PiP is supported
+  const [isPiPSupported, setIsPiPSupported] = useState(false);
 
   const handleQualityChange = (levelIndex) => {
     if (!hlsRef.current) return;
@@ -134,15 +145,61 @@ const VideoPlayer = ({ url }) => {
     };
   }, [url]);
 
+  useEffect(() => {
+    // Check PiP support
+    const video = videoRef.current;
+    if (video) {
+      setIsPiPSupported(
+        document.pictureInPictureEnabled ||
+        typeof video.requestPictureInPicture === 'function' ||
+        // For Safari
+        typeof video.webkitSupportsPresentationMode === 'function'
+      );
+    }
+  }, []);
+
   const primaryColor = useColorModeValue('white', 'white');
   const menuBg = useColorModeValue('white', 'gray.700');
 
   return (
-    <Box width="100%" maxW="100vw" bg="black" position="relative">
+    <Box 
+      width="100%" 
+      maxW="100vw" 
+      height="calc(100vh - 80px)"
+      maxH="calc(100vh - 80px)"
+      bg="black" 
+      position="relative"
+      display="flex"
+      alignItems="center"
+      justifyContent="center"
+      overflow="hidden"
+      my={6}
+      sx={{
+        '&:fullscreen': {
+          height: '100%',
+          minHeight: '100%',
+          margin: 0,
+          padding: 0,
+        },
+        '&::-webkit-full-screen': {
+          height: '100%',
+          maxHeight: '100%',
+          margin: 0,
+          padding: 0,
+        },
+        '&:-ms-fullscreen': {
+          height: '100%',
+          maxHeight: '100%',
+          margin: 0,
+          padding: 0,
+        }
+      }}
+    >
       <media-controller
         style={{
           width: '100%',
-          aspectRatio: '16/9',
+          height: '100%',
+          maxHeight: 'calc(100vh - 80px)',
           '--media-primary-color': 'white',
           '--media-secondary-color': 'rgba(255, 255, 255, 0.7)',
           '--media-loading-icon-color': 'white',
@@ -155,6 +212,9 @@ const VideoPlayer = ({ url }) => {
           '--media-button-icon-hover-color': 'rgba(255, 255, 255, 0.9)',
           '--media-button-icon-active-color': 'rgba(255, 255, 255, 0.8)',
           '--media-time-display-color': 'white',
+          '--media-control-padding': controlsSpacing,
+          '--media-button-icon-width': buttonSize === 'xs' ? '24px' : '32px',
+          '--media-button-icon-height': buttonSize === 'xs' ? '24px' : '32px',
         }}
       >
         <video
@@ -166,6 +226,8 @@ const VideoPlayer = ({ url }) => {
             width: '100%',
             height: '100%',
             backgroundColor: 'black',
+            objectFit: 'contain',
+            maxHeight: '100%',
           }}
         />
 
@@ -175,75 +237,155 @@ const VideoPlayer = ({ url }) => {
           <media-seek-backward-button seek-offset="10"></media-seek-backward-button>
           <media-seek-forward-button seek-offset="10"></media-seek-forward-button>
           <media-time-range></media-time-range>
-          <media-time-display></media-time-display>
+          {showTimeDisplay && <media-time-display></media-time-display>}
           <media-mute-button></media-mute-button>
-          <media-volume-range></media-volume-range>
+          {showVolumeRange && <media-volume-range></media-volume-range>}
           
           {/* Quality Selection */}
           {qualities.length > 1 && (
-            <Box mx={2} position="relative" display="inline-block">
-              <Menu>
-                <MenuButton
-                  as={Button}
-                  size="sm"
-                  rightIcon={<ChevronDownIcon />}
+            <Menu>
+              <MenuButton
+                as={Button}
+                size={buttonSize}
+                rightIcon={<ChevronDownIcon />}
+                bg="transparent"
+                color="var(--media-button-icon-color)"
+                _hover={{ 
+                  bg: 'var(--media-control-hover-background)',
+                  color: 'var(--media-button-icon-hover-color)'
+                }}
+                _active={{ 
+                  bg: 'var(--media-control-hover-background)',
+                  color: 'var(--media-button-icon-active-color)'
+                }}
+                height="var(--media-button-height, 48px)"
+                minW="auto"
+                margin="0"
+                padding="0 8px"
+              >
+                {currentQuality === -1 ? 'Auto' : `${qualities[currentQuality]?.height}p`}
+              </MenuButton>
+              <MenuList 
+                bg="var(--media-control-background)"
+                borderColor="whiteAlpha.200"
+                minW="auto"
+                sx={{
+                  '&::-webkit-scrollbar': {
+                    width: '4px',
+                  },
+                  '&::-webkit-scrollbar-track': {
+                    bg: 'transparent',
+                  },
+                  '&::-webkit-scrollbar-thumb': {
+                    bg: 'whiteAlpha.300',
+                    borderRadius: 'full',
+                  },
+                }}
+              >
+                <MenuItem 
+                  onClick={() => handleQualityChange(-1)}
                   bg="transparent"
-                  color="white"
-                  _hover={{ bg: 'whiteAlpha.200' }}
-                  _active={{ bg: 'whiteAlpha.300' }}
+                  color="var(--media-button-icon-color)"
+                  _hover={{ bg: 'var(--media-control-hover-background)' }}
                 >
-                  {currentQuality === -1 ? 'Auto' : `${qualities[currentQuality]?.height}p`}
-                </MenuButton>
-                <MenuList bg={menuBg}>
-                  <MenuItem onClick={() => handleQualityChange(-1)}>
-                    Auto
+                  Auto
+                </MenuItem>
+                {qualities.map((quality) => (
+                  <MenuItem
+                    key={quality.index}
+                    onClick={() => handleQualityChange(quality.index)}
+                    fontSize={buttonSize === 'xs' ? 'sm' : 'md'}
+                    bg="transparent"
+                    color="var(--media-button-icon-color)"
+                    _hover={{ bg: 'var(--media-control-hover-background)' }}
+                  >
+                    {quality.height}p ({Math.round(quality.bitrate / 1000)} kbps)
                   </MenuItem>
-                  {qualities.map((quality) => (
-                    <MenuItem
-                      key={quality.index}
-                      onClick={() => handleQualityChange(quality.index)}
-                    >
-                      {quality.height}p ({Math.round(quality.bitrate / 1000)} kbps)
-                    </MenuItem>
-                  ))}
-                </MenuList>
-              </Menu>
-            </Box>
+                ))}
+              </MenuList>
+            </Menu>
           )}
 
           {/* Audio Track Selection */}
           {audioTracks.length > 1 && (
-            <Box mx={2} position="relative" display="inline-block">
-              <Menu>
-                <MenuButton
-                  as={Button}
-                  size="sm"
-                  rightIcon={<ChevronDownIcon />}
-                  bg="transparent"
-                  color="white"
-                  _hover={{ bg: 'whiteAlpha.200' }}
-                  _active={{ bg: 'whiteAlpha.300' }}
-                >
-                  {audioTracks[currentAudio]?.name || 'Audio'}
-                </MenuButton>
-                <MenuList bg={menuBg}>
-                  {audioTracks.map((track, index) => (
-                    <MenuItem
-                      key={track.id}
-                      onClick={() => handleAudioChange(index)}
-                    >
-                      {track.name}
-                    </MenuItem>
-                  ))}
-                </MenuList>
-              </Menu>
-            </Box>
+            <Menu>
+              <MenuButton
+                as={Button}
+                size={buttonSize}
+                rightIcon={<ChevronDownIcon />}
+                bg="transparent"
+                color="var(--media-button-icon-color)"
+                _hover={{ 
+                  bg: 'var(--media-control-hover-background)',
+                  color: 'var(--media-button-icon-hover-color)'
+                }}
+                _active={{ 
+                  bg: 'var(--media-control-hover-background)',
+                  color: 'var(--media-button-icon-active-color)'
+                }}
+                height="var(--media-button-height, 48px)"
+                minW="auto"
+                margin="0"
+                padding="0 8px"
+              >
+                {audioTracks[currentAudio]?.name || 'Audio'}
+              </MenuButton>
+              <MenuList 
+                bg="var(--media-control-background)"
+                borderColor="whiteAlpha.200"
+                minW="auto"
+                sx={{
+                  '&::-webkit-scrollbar': {
+                    width: '4px',
+                  },
+                  '&::-webkit-scrollbar-track': {
+                    bg: 'transparent',
+                  },
+                  '&::-webkit-scrollbar-thumb': {
+                    bg: 'whiteAlpha.300',
+                    borderRadius: 'full',
+                  },
+                }}
+              >
+                {audioTracks.map((track, index) => (
+                  <MenuItem
+                    key={track.id}
+                    onClick={() => handleAudioChange(index)}
+                    fontSize={buttonSize === 'xs' ? 'sm' : 'md'}
+                    bg="transparent"
+                    color="var(--media-button-icon-color)"
+                    _hover={{ bg: 'var(--media-control-hover-background)' }}
+                  >
+                    {track.name}
+                  </MenuItem>
+                ))}
+              </MenuList>
+            </Menu>
           )}
 
-          <media-playback-rate-button></media-playback-rate-button>
-          <media-pip-button></media-pip-button>
+          {/* Playback Rate - Hidden on mobile */}
+          {showPlaybackRate && (
+            <media-playback-rate-button></media-playback-rate-button>
+          )}
+
+          {/* PiP Button - Show if supported */}
+          {isPiPSupported && (
+            <media-pip-button></media-pip-button>
+          )}
+
           <media-fullscreen-button></media-fullscreen-button>
         </media-control-bar>
+
+        {/* Add PiP support for Safari */}
+        {isPiPSupported && (
+          <style>
+            {`
+              video::-webkit-media-controls-pip-button {
+                display: none !important;
+              }
+            `}
+          </style>
+        )}
       </media-controller>
     </Box>
   );
