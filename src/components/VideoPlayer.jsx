@@ -165,31 +165,31 @@ const VideoPlayer = ({ url }) => {
     <Box 
       width="100%" 
       maxW="100vw" 
-      height="calc(100vh - 80px)"
-      maxH="calc(100vh - 80px)"
+      height={{ base: "auto", md: "calc(100vh - 80px)" }}
+      maxH={{ base: "none", md: "calc(100vh - 80px)" }}
       bg="black" 
       position="relative"
       display="flex"
       alignItems="center"
       justifyContent="center"
       overflow="hidden"
-      my={6}
+      my={{ base: 0, md: 6 }}
       sx={{
         '&:fullscreen': {
-          height: '100%',
-          minHeight: '100%',
+          height: '100vh',
+          maxHeight: '100vh',
           margin: 0,
           padding: 0,
         },
         '&::-webkit-full-screen': {
-          height: '100%',
-          maxHeight: '100%',
+          height: '100vh',
+          maxHeight: '100vh',
           margin: 0,
           padding: 0,
         },
         '&:-ms-fullscreen': {
-          height: '100%',
-          maxHeight: '100%',
+          height: '100vh',
+          maxHeight: '100vh',
           margin: 0,
           padding: 0,
         }
@@ -199,7 +199,7 @@ const VideoPlayer = ({ url }) => {
         style={{
           width: '100%',
           height: '100%',
-          maxHeight: 'calc(100vh - 80px)',
+          aspectRatio: '16/9',
           '--media-primary-color': 'white',
           '--media-secondary-color': 'rgba(255, 255, 255, 0.7)',
           '--media-loading-icon-color': 'white',
@@ -227,7 +227,6 @@ const VideoPlayer = ({ url }) => {
             height: '100%',
             backgroundColor: 'black',
             objectFit: 'contain',
-            maxHeight: '100%',
           }}
         />
 
