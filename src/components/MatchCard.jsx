@@ -70,61 +70,96 @@ const MatchCard = ({ match }) => {
   };
 
   // Format match time for schema
-  const startDate = new Date(match.scheduledStartTime).toISOString();
-  const endDate = new Date(new Date(match.scheduledStartTime).getTime() + (4 * 60 * 60 * 1000)).toISOString();
+  const formatSchemaData = () => {
+    const startDate = match.scheduledTime ? new Date(match.scheduledTime).toISOString() : '';
+    const endDate = match.scheduledTime ? 
+      new Date(new Date(match.scheduledTime).getTime() + (4 * 60 * 60 * 1000)).toISOString() : '';
 
-  // Create schema data
-  const schemaData = {
-    "@context": "https://schema.org",
-    "@type": "SportsEvent",
-    "name": `${match.team1} vs ${match.team2} Live ${new Date(match.scheduledStartTime).toLocaleDateString()}`,
-    "startDate": startDate,
-    "endDate": endDate,
-    "eventStatus": "https://schema.org/EventScheduled",
-    "location": {
-      "@type": "Place",
-      "name": match.venue || "Cricket Stadium",
-      "address": {
-        "@type": "PostalAddress",
-        "addressLocality": match.venue || "India"
+    const matchVenue = match.venue || 'IPL 2025 Stadium';
+    const matchCity = match.city || 'India';
+
+    const getEventStatus = () => {
+      switch (match.status) {
+        case 'live':
+          return 'https://schema.org/EventLive';
+        case 'completed':
+          return 'https://schema.org/EventScheduled';
+        case 'upcoming':
+          return 'https://schema.org/EventScheduled';
+        default:
+          return 'https://schema.org/EventScheduled';
       }
-    },
-    "description": `Watch ${match.team1} vs ${match.team2} live cricket match streaming on Crickflix. IPL 2024 live coverage.`,
-    "organizer": {
-      "@type": "Organization",
-      "name": "BCCI",
-      "url": "https://www.iplt20.com"
-    },
-    "performer": [
-      {
-        "@type": "SportsTeam",
-        "name": match.team1
+    };
+
+    return {
+      "@context": "https://schema.org",
+      "@type": "SportsEvent",
+      "name": match.title || `${match.team1?.name} vs ${match.team2?.name}`,
+      "startDate": startDate,
+      "endDate": endDate,
+      "eventStatus": getEventStatus(),
+      "location": {
+        "@type": "Place",
+        "name": matchVenue,
+        "address": {
+          "@type": "PostalAddress",
+          "addressLocality": matchCity,
+          "addressCountry": "IN"
+        }
       },
-      {
-        "@type": "SportsTeam",
-        "name": match.team2
-      }
-    ],
-    "eventAttendanceMode": "https://schema.org/OnlineEventAttendanceMode",
-    "image": [
-      match.team1Logo || "https://crickflix.vercel.app/cricket-default.jpg",
-      match.team2Logo || "https://crickflix.vercel.app/cricket-default.jpg"
-    ],
-    "offers": {
-      "@type": "Offer",
-      "url": `https://crickflix.vercel.app/match/${match._id}`,
-      "price": "0",
-      "priceCurrency": "INR",
-      "availability": "https://schema.org/InStock",
-      "validFrom": startDate
-    }
+      "description": match.description || 
+        `Watch ${match.team1?.name} vs ${match.team2?.name} live cricket match streaming on Crickflix. IPL 2025 live coverage from ${matchVenue}, ${matchCity}.`,
+      "organizer": {
+        "@type": "Organization",
+        "name": "Board of Control for Cricket in India (BCCI)",
+        "url": "https://www.iplt20.com"
+      },
+      "performer": [
+        {
+          "@type": "SportsTeam",
+          "name": match.team1?.name || match.team1,
+          "image": match.team1?.logo || match.team1Logo
+        },
+        {
+          "@type": "SportsTeam",
+          "name": match.team2?.name || match.team2,
+          "image": match.team2?.logo || match.team2Logo
+        }
+      ],
+      "eventAttendanceMode": "https://schema.org/OnlineEventAttendanceMode",
+      "image": [
+        match.thumbnail || 
+        match.team1?.logo || 
+        match.team1Logo || 
+        "https://crickflix.vercel.app/cricket-default.jpg"
+      ],
+      "offers": {
+        "@type": "Offer",
+        "url": `https://crickflix.vercel.app/match/${match._id}`,
+        "price": "0",
+        "priceCurrency": "INR",
+        "availability": "https://schema.org/InStock",
+        "validFrom": startDate
+      },
+      "sport": "Cricket",
+      "competitor": [
+        {
+          "@type": "SportsTeam",
+          "name": match.team1?.name || match.team1
+        },
+        {
+          "@type": "SportsTeam",
+          "name": match.team2?.name || match.team2
+        }
+      ]
+    };
   };
 
   return (
     <>
       <Helmet>
         <script type="application/ld+json">
-          {JSON.stringify(schemaData)}
+          {JSON.stringify(formatSchemaData())}
         </script>
       </Helmet>
 
