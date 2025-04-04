@@ -2,6 +2,7 @@ import { Box, Image, Heading, Text, Badge, LinkBox, LinkOverlay, Flex, useToast,
 import { Link as RouterLink } from 'react-router-dom';
 import { useState, useEffect } from 'react';
 import moment from 'moment';
+import { Helmet } from 'react-helmet-async';
 
 const MatchCard = ({ match }) => {
   const [timeLeft, setTimeLeft] = useState('');
@@ -68,155 +69,214 @@ const MatchCard = ({ match }) => {
     }
   };
 
+  // Format match time for schema
+  const startDate = new Date(match.scheduledStartTime).toISOString();
+  const endDate = new Date(new Date(match.scheduledStartTime).getTime() + (4 * 60 * 60 * 1000)).toISOString();
+
+  // Create schema data
+  const schemaData = {
+    "@context": "https://schema.org",
+    "@type": "SportsEvent",
+    "name": `${match.team1} vs ${match.team2} Live ${new Date(match.scheduledStartTime).toLocaleDateString()}`,
+    "startDate": startDate,
+    "endDate": endDate,
+    "eventStatus": "https://schema.org/EventScheduled",
+    "location": {
+      "@type": "Place",
+      "name": match.venue || "Cricket Stadium",
+      "address": {
+        "@type": "PostalAddress",
+        "addressLocality": match.venue || "India"
+      }
+    },
+    "description": `Watch ${match.team1} vs ${match.team2} live cricket match streaming on Crickflix. IPL 2024 live coverage.`,
+    "organizer": {
+      "@type": "Organization",
+      "name": "BCCI",
+      "url": "https://www.iplt20.com"
+    },
+    "performer": [
+      {
+        "@type": "SportsTeam",
+        "name": match.team1
+      },
+      {
+        "@type": "SportsTeam",
+        "name": match.team2
+      }
+    ],
+    "eventAttendanceMode": "https://schema.org/OnlineEventAttendanceMode",
+    "image": [
+      match.team1Logo || "https://crickflix.vercel.app/cricket-default.jpg",
+      match.team2Logo || "https://crickflix.vercel.app/cricket-default.jpg"
+    ],
+    "offers": {
+      "@type": "Offer",
+      "url": `https://crickflix.vercel.app/match/${match._id}`,
+      "price": "0",
+      "priceCurrency": "INR",
+      "availability": "https://schema.org/InStock",
+      "validFrom": startDate
+    }
+  };
+
   return (
-    <LinkBox
-      as="article"
-      borderWidth="1px"
-      borderRadius="lg"
-      overflow="hidden"
-      transition="transform 0.2s"
-      _hover={{
-        transform: match.status !== 'completed' ? 'scale(1.02)' : 'none',
-        shadow: match.status !== 'completed' ? 'lg' : 'none',
-      }}
-      opacity={match.status === 'completed' ? 0.7 : 1}
-      cursor={match.status === 'completed' ? 'not-allowed' : 'pointer'}
-    >
-      <Box position="relative">
-        <Image
-          src={match.thumbnail || 'https://via.placeholder.com/400x200?text=Cricket+Match'}
-          alt={match.title}
-          width="100%"
-          height="200px"
-          objectFit="cover"
-        />
-        {match.isLive && (
-          <Badge
-            position="absolute"
-            top={2}
-            right={2}
-            colorScheme="red"
-            variant="solid"
-            px={3}
-            py={1}
-            borderRadius="full"
+    <>
+      <Helmet>
+        <script type="application/ld+json">
+          {JSON.stringify(schemaData)}
+        </script>
+      </Helmet>
+
+      <LinkBox
+        as="article"
+        borderWidth="1px"
+        borderRadius="lg"
+        overflow="hidden"
+        transition="transform 0.2s"
+        _hover={{
+          transform: match.status !== 'completed' ? 'scale(1.02)' : 'none',
+          shadow: match.status !== 'completed' ? 'lg' : 'none',
+        }}
+        opacity={match.status === 'completed' ? 0.7 : 1}
+        cursor={match.status === 'completed' ? 'not-allowed' : 'pointer'}
+      >
+        <Box position="relative">
+          <Image
+            src={match.thumbnail || 'https://via.placeholder.com/400x200?text=Cricket+Match'}
+            alt={match.title}
+            width="100%"
+            height="200px"
+            objectFit="cover"
+          />
+          {match.isLive && (
+            <Badge
+              position="absolute"
+              top={2}
+              right={2}
+              colorScheme="red"
+              variant="solid"
+              px={3}
+              py={1}
+              borderRadius="full"
+            >
+              LIVE NOW
+            </Badge>
+          )}
+          {match.status === 'upcoming' && timeLeft && (
+            <Badge
+              position="absolute"
+              top={2}
+              right={2}
+              colorScheme="blue"
+              variant="solid"
+              px={3}
+              py={1}
+              borderRadius="full"
+            >
+              {timeLeft}
+            </Badge>
+          )}
+        </Box>
+        
+        <Box p={4}>
+          <Flex justify="space-between" align="center" mb={2}>
+            <Badge colorScheme={getStatusColor(match.status)} variant="subtle">
+              {match.status.toUpperCase()}
+            </Badge>
+            {match.views > 0 && (
+              <Text fontSize="sm" color="gray.600">
+                {match.views} views
+              </Text>
+            )}
+          </Flex>
+
+          <LinkOverlay 
+            as={RouterLink} 
+            to={`/match/${match._id}`}
+            onClick={handleCompletedClick}
           >
-            LIVE NOW
-          </Badge>
-        )}
-        {match.status === 'upcoming' && timeLeft && (
-          <Badge
-            position="absolute"
-            top={2}
-            right={2}
-            colorScheme="blue"
-            variant="solid"
-            px={3}
-            py={1}
-            borderRadius="full"
-          >
-            {timeLeft}
-          </Badge>
-        )}
-      </Box>
-      
-      <Box p={4}>
-        <Flex justify="space-between" align="center" mb={2}>
-          <Badge colorScheme={getStatusColor(match.status)} variant="subtle">
-            {match.status.toUpperCase()}
-          </Badge>
-          {match.views > 0 && (
-            <Text fontSize="sm" color="gray.600">
-              {match.views} views
+            <Heading size="md" mb={2}>
+              {match.title}
+            </Heading>
+          </LinkOverlay>
+
+          {match.status === 'upcoming' && (
+            <Text fontSize="sm" color="gray.600" mb={2}>
+              {getLocalTime()}
             </Text>
           )}
-        </Flex>
 
-        <LinkOverlay 
-          as={RouterLink} 
-          to={`/match/${match._id}`}
-          onClick={handleCompletedClick}
-        >
-          <Heading size="md" mb={2}>
-            {match.title}
-          </Heading>
-        </LinkOverlay>
-
-        {match.status === 'upcoming' && (
-          <Text fontSize="sm" color="gray.600" mb={2}>
-            {getLocalTime()}
-          </Text>
-        )}
-
-        <HStack 
-          spacing={{ base: 2, sm: 4 }} 
-          mb={2} 
-          width="100%" 
-          justifyContent="center"
-          px={2}
-        >
-          <Flex 
-            align="center" 
-            flex={{ base: 1, sm: "auto" }}
-            maxW={{ base: "40%", sm: "none" }}
+          <HStack 
+            spacing={{ base: 2, sm: 4 }} 
+            mb={2} 
+            width="100%" 
+            justifyContent="center"
+            px={2}
           >
-            <Avatar 
-              size={{ base: "xs", sm: "sm" }}
-              src={match.team1?.logo} 
-              name={match.team1?.name} 
-              mr={1}
-            />
-            <Text 
-              fontWeight="medium" 
-              fontSize={{ base: "sm", sm: "md" }}
-              noOfLines={1}
-              isTruncated
+            <Flex 
+              align="center" 
+              flex={{ base: 1, sm: "auto" }}
+              maxW={{ base: "40%", sm: "none" }}
             >
-              {match.team1?.name}
-            </Text>
-          </Flex>
-          <Text 
-            fontWeight="bold" 
-            fontSize={{ base: "sm", sm: "md" }}
-            px={1}
-          >
-            vs
-          </Text>
-          <Flex 
-            align="center" 
-            flex={{ base: 1, sm: "auto" }}
-            maxW={{ base: "40%", sm: "none" }}
-          >
-            <Avatar 
-              size={{ base: "xs", sm: "sm" }}
-              src={match.team2?.logo} 
-              name={match.team2?.name} 
-              mr={1}
-            />
+              <Avatar 
+                size={{ base: "xs", sm: "sm" }}
+                src={match.team1?.logo} 
+                name={match.team1?.name} 
+                mr={1}
+              />
+              <Text 
+                fontWeight="medium" 
+                fontSize={{ base: "sm", sm: "md" }}
+                noOfLines={1}
+                isTruncated
+              >
+                {match.team1?.name}
+              </Text>
+            </Flex>
             <Text 
-              fontWeight="medium" 
+              fontWeight="bold" 
               fontSize={{ base: "sm", sm: "md" }}
-              noOfLines={1}
-              isTruncated
+              px={1}
             >
-              {match.team2?.name}
+              vs
             </Text>
-          </Flex>
-        </HStack>
+            <Flex 
+              align="center" 
+              flex={{ base: 1, sm: "auto" }}
+              maxW={{ base: "40%", sm: "none" }}
+            >
+              <Avatar 
+                size={{ base: "xs", sm: "sm" }}
+                src={match.team2?.logo} 
+                name={match.team2?.name} 
+                mr={1}
+              />
+              <Text 
+                fontWeight="medium" 
+                fontSize={{ base: "sm", sm: "md" }}
+                noOfLines={1}
+                isTruncated
+              >
+                {match.team2?.name}
+              </Text>
+            </Flex>
+          </HStack>
 
-        {match.description && (
-          <Text noOfLines={2} color="gray.600">
-            {match.description}
-          </Text>
-        )}
+          {match.description && (
+            <Text noOfLines={2} color="gray.600">
+              {match.description}
+            </Text>
+          )}
 
-        {match.category && (
-          <Text fontSize="sm" color="gray.500" mt={2}>
-            {match.category.name}
-          </Text>
-        )}
-      </Box>
-    </LinkBox>
+          {match.category && (
+            <Text fontSize="sm" color="gray.500" mt={2}>
+              {match.category.name}
+            </Text>
+          )}
+        </Box>
+      </LinkBox>
+    </>
   );
 };
 
