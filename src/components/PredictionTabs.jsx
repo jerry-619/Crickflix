@@ -31,17 +31,14 @@ import LiveScore from './LiveScore';
 
 const PredictionTabs = ({ matchId }) => {
   const [predictions, setPredictions] = useState({
-    fantasy: null,
     match: null,
     toss: null
   });
   const [loading, setLoading] = useState({
-    fantasy: false,
     match: false,
     toss: false
   });
   const [error, setError] = useState({
-    fantasy: null,
     match: null,
     toss: null
   });
@@ -51,7 +48,6 @@ const PredictionTabs = ({ matchId }) => {
   const borderColor = useColorModeValue('gray.200', 'gray.600');
 
   useEffect(() => {
-    fetchPrediction('fantasy');
     fetchPrediction('match');
     fetchPrediction('toss');
   }, [matchId]);
@@ -89,217 +85,6 @@ const PredictionTabs = ({ matchId }) => {
     setPredictions(prev => ({ ...prev, [type]: null }));
     setError(prev => ({ ...prev, [type]: null }));
     fetchPrediction(type);
-  };
-
-  const renderFantasyXI = () => {
-    if (loading.fantasy) {
-      return (
-        <Flex justify="center" align="center" minH="200px">
-          <Spinner size="xl" color="blue.500" thickness="4px" />
-        </Flex>
-      );
-    }
-    
-    if (error.fantasy) {
-      return (
-        <Alert status="error" borderRadius="md">
-          <AlertIcon />
-          <Box flex="1">
-            <Text>{error.fantasy}</Text>
-            <Button size="sm" onClick={() => retryPrediction('fantasy')} mt={2}>
-              Retry
-            </Button>
-          </Box>
-        </Alert>
-      );
-    }
-    
-    if (!predictions.fantasy) {
-      return (
-        <Flex justify="center" align="center" minH="200px">
-          <Spinner size="xl" color="blue.500" thickness="4px" />
-        </Flex>
-      );
-    }
-
-    return (
-      <Stack spacing={6}>
-        {/* Captain and Vice Captain Section */}
-        <Grid templateColumns={{ base: "1fr", md: "repeat(2, 1fr)" }} gap={4}>
-          {/* Captain Card */}
-          <Card bg={cardBg} borderWidth="1px" borderColor={borderColor}>
-            <CardBody>
-              <Stack spacing={3}>
-                <Heading size="md" color="blue.500">Captain</Heading>
-                <Flex align="center" gap={3}>
-                  <Avatar name={predictions.fantasy.captain.name} size="lg" />
-                  <Stack spacing={0}>
-                    <Text fontWeight="bold">{predictions.fantasy.captain.name}</Text>
-                    <Text fontSize="sm" color="gray.500">{predictions.fantasy.captain.role}</Text>
-                    <Badge colorScheme={predictions.fantasy.captain.team === predictions.fantasy.team1 ? "blue" : "green"}>
-                      {predictions.fantasy.captain.team}
-                    </Badge>
-                  </Stack>
-                </Flex>
-                <Box>
-                  <Text fontSize="sm" fontWeight="medium">Current Form:</Text>
-                  <Text fontSize="sm">{predictions.fantasy.captain.currentForm || 'N/A'}</Text>
-                </Box>
-                <Box>
-                  <Text fontSize="sm" fontWeight="medium">Expected Points:</Text>
-                  <Text fontSize="sm">{predictions.fantasy.captain.expectedPoints || '0'}</Text>
-                </Box>
-                <Box>
-                  <Text fontSize="sm" fontWeight="medium">Selection Reason:</Text>
-                  <Text fontSize="sm">{predictions.fantasy.captain.reason || 'N/A'}</Text>
-                </Box>
-              </Stack>
-            </CardBody>
-          </Card>
-
-          {/* Vice Captain Card */}
-          <Card bg={cardBg} borderWidth="1px" borderColor={borderColor}>
-            <CardBody>
-              <Stack spacing={3}>
-                <Heading size="md" color="purple.500">Vice Captain</Heading>
-                <Flex align="center" gap={3}>
-                  <Avatar name={predictions.fantasy.viceCaptain.name} size="lg" />
-                  <Stack spacing={0}>
-                    <Text fontWeight="bold">{predictions.fantasy.viceCaptain.name}</Text>
-                    <Text fontSize="sm" color="gray.500">{predictions.fantasy.viceCaptain.role}</Text>
-                    <Badge colorScheme={predictions.fantasy.viceCaptain.team === predictions.fantasy.team1 ? "blue" : "green"}>
-                      {predictions.fantasy.viceCaptain.team}
-                    </Badge>
-                  </Stack>
-                </Flex>
-                <Box>
-                  <Text fontSize="sm" fontWeight="medium">Current Form:</Text>
-                  <Text fontSize="sm">{predictions.fantasy.viceCaptain.currentForm || 'N/A'}</Text>
-                </Box>
-                <Box>
-                  <Text fontSize="sm" fontWeight="medium">Expected Points:</Text>
-                  <Text fontSize="sm">{predictions.fantasy.viceCaptain.expectedPoints || '0'}</Text>
-                </Box>
-                <Box>
-                  <Text fontSize="sm" fontWeight="medium">Selection Reason:</Text>
-                  <Text fontSize="sm">{predictions.fantasy.viceCaptain.reason || 'N/A'}</Text>
-                </Box>
-              </Stack>
-            </CardBody>
-          </Card>
-        </Grid>
-
-        {/* Team Composition */}
-        <Card bg={cardBg} borderWidth="1px" borderColor={borderColor}>
-          <CardBody>
-            <Heading size="md" mb={4}>Team Composition</Heading>
-            <Grid templateColumns="repeat(4, 1fr)" gap={4}>
-              <Box textAlign="center">
-                <Text fontSize="2xl" fontWeight="bold" color="blue.500">{predictions.fantasy.teamComposition.batsmen}</Text>
-                <Text fontSize="sm">Batsmen</Text>
-              </Box>
-              <Box textAlign="center">
-                <Text fontSize="2xl" fontWeight="bold" color="green.500">{predictions.fantasy.teamComposition.bowlers}</Text>
-                <Text fontSize="sm">Bowlers</Text>
-              </Box>
-              <Box textAlign="center">
-                <Text fontSize="2xl" fontWeight="bold" color="purple.500">{predictions.fantasy.teamComposition.allRounders}</Text>
-                <Text fontSize="sm">All-Rounders</Text>
-              </Box>
-              <Box textAlign="center">
-                <Text fontSize="2xl" fontWeight="bold" color="orange.500">{predictions.fantasy.teamComposition.wicketKeeper}</Text>
-                <Text fontSize="sm">Wicket-Keeper</Text>
-              </Box>
-            </Grid>
-          </CardBody>
-        </Card>
-
-        {/* Players Grid */}
-        <Grid templateColumns={{ base: "1fr", md: "repeat(2, 1fr)" }} gap={4}>
-          {predictions.fantasy.players.map((player, index) => (
-            <Card key={index} bg={cardBg} borderWidth="1px" borderColor={borderColor}>
-              <CardBody>
-                <Stack spacing={3}>
-                  <Flex align="center" gap={3}>
-                    <Avatar name={player.name} />
-                    <Stack spacing={0} flex={1}>
-                      <Flex justify="space-between" align="center">
-                        <Text fontWeight="bold">{player.name}</Text>
-                        <HStack spacing={2}>
-                          {player.isCaptain && <Badge colorScheme="blue">C</Badge>}
-                          {player.isViceCaptain && <Badge colorScheme="purple">VC</Badge>}
-                        </HStack>
-                      </Flex>
-                      <Text fontSize="sm" color="gray.500">{player.role}</Text>
-                      <Badge colorScheme={player.team === predictions.fantasy.team1 ? "blue" : "green"} width="fit-content">
-                        {player.team}
-                      </Badge>
-                    </Stack>
-                  </Flex>
-                  <Divider />
-                  <Grid templateColumns="repeat(2, 1fr)" gap={2} fontSize="sm">
-                    <Box>
-                      <Text fontWeight="medium">Recent Form:</Text>
-                      <Text>{player.recentForm || 'N/A'}</Text>
-                    </Box>
-                    <Box>
-                      <Text fontWeight="medium">Matches:</Text>
-                      <Text>{player.matchesPlayed || '0'}</Text>
-                    </Box>
-                  </Grid>
-                  <Box fontSize="sm">
-                    <Text fontWeight="medium">Current Stats:</Text>
-                    <Grid templateColumns="repeat(2, 1fr)" gap={2}>
-                      <Text>Runs: {(player.currentStats && player.currentStats.runs) || '0'}</Text>
-                      <Text>Wickets: {(player.currentStats && player.currentStats.wickets) || '0'}</Text>
-                      <Text>Avg: {(player.currentStats && player.currentStats.average) || '0'}</Text>
-                      <Text>SR: {(player.currentStats && player.currentStats.strikeRate) || '0'}</Text>
-                    </Grid>
-                  </Box>
-                  <Box fontSize="sm">
-                    <Text fontWeight="medium">Selection Reason:</Text>
-                    <Text>{player.selectionReason || 'N/A'}</Text>
-                  </Box>
-                </Stack>
-              </CardBody>
-            </Card>
-          ))}
-        </Grid>
-
-        {/* Team Summary */}
-        <Card bg={cardBg} borderWidth="1px" borderColor={borderColor}>
-          <CardBody>
-            <Stack spacing={4}>
-              <Heading size="md">Team Summary</Heading>
-              <Box>
-                <Text fontWeight="medium">Total Projected Points:</Text>
-                <Text fontSize="2xl" color="green.500">{predictions.fantasy.teamSummary.totalProjectedPoints}</Text>
-              </Box>
-              <Box>
-                <Text fontWeight="medium" mb={2}>Strengths:</Text>
-                <UnorderedList>
-                  {predictions.fantasy.teamSummary.strengths.map((strength, index) => (
-                    <ListItem key={index}>{strength}</ListItem>
-                  ))}
-                </UnorderedList>
-              </Box>
-              <Box>
-                <Text fontWeight="medium" mb={2}>Risks:</Text>
-                <UnorderedList>
-                  {predictions.fantasy.teamSummary.risks.map((risk, index) => (
-                    <ListItem key={index}>{risk}</ListItem>
-                  ))}
-                </UnorderedList>
-              </Box>
-              <Box>
-                <Text fontWeight="medium" mb={2}>Analysis:</Text>
-                <Text>{predictions.fantasy.teamSummary.analysis}</Text>
-              </Box>
-            </Stack>
-          </CardBody>
-        </Card>
-      </Stack>
-    );
   };
 
   const renderMatchPrediction = () => {
@@ -587,7 +372,6 @@ const PredictionTabs = ({ matchId }) => {
       >
         <TabList display="flex" width="100%">
           <Tab flex="1" fontSize={{ base: "sm", md: "md" }} fontWeight="semibold">Live Score</Tab>
-          <Tab flex="1" fontSize={{ base: "sm", md: "md" }} fontWeight="semibold">Fantasy XI</Tab>
           <Tab flex="1" fontSize={{ base: "sm", md: "md" }} fontWeight="semibold">Match</Tab>
           <Tab flex="1" fontSize={{ base: "sm", md: "md" }} fontWeight="semibold">Toss</Tab>
         </TabList>
@@ -595,9 +379,6 @@ const PredictionTabs = ({ matchId }) => {
         <TabPanels>
           <TabPanel p={0} pt={4}>
             <LiveScore />
-          </TabPanel>
-          <TabPanel p={0} pt={4}>
-            {renderFantasyXI()}
           </TabPanel>
           <TabPanel p={0} pt={4}>
             {renderMatchPrediction()}
