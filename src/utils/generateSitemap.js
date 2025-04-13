@@ -1,30 +1,22 @@
 import axios from 'axios';
 import { env } from '../../scripts/loadEnv.js';
-import https from 'https';
 
 const BASE_URL = env.VITE_FRONTEND_URL;
 const API_URL = env.VITE_API_URL;
 console.log(BASE_URL, API_URL);
 
-// Create axios instance with SSL verification disabled for IP addresses
-const axiosInstance = axios.create({
-  httpsAgent: new https.Agent({  
-    rejectUnauthorized: false
-  })
-});
-
 export const generateSitemap = async () => {
   try {
     // Fetch all matches
-    const matchesRes = await axiosInstance.get(`${API_URL}/matches`);
+    const matchesRes = await axios.get(`${API_URL}/matches`);
     const matches = matchesRes.data;
 
     // Fetch all categories
-    const categoriesRes = await axiosInstance.get(`${API_URL}/categories`);
+    const categoriesRes = await axios.get(`${API_URL}/categories`);
     const categories = categoriesRes.data;
 
     // Fetch all blogs
-    const blogsRes = await axiosInstance.get(`${API_URL}/blogs`);
+    const blogsRes = await axios.get(`${API_URL}/blogs`);
     const blogs = blogsRes.data;
 
     // Static routes

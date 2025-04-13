@@ -23,7 +23,6 @@ export const SocketProvider = ({ children }) => {
       reconnection: true,
       reconnectionAttempts: 5,
       reconnectionDelay: 1000,
-      rejectUnauthorized: false, // Allow self-signed certificates
     });
 
     newSocket.on('connect', () => {

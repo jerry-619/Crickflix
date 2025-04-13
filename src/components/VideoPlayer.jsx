@@ -89,6 +89,7 @@ const VideoPlayer = ({ url }) => {
         debug: false,
         enableWorker: true,
         lowLatencyMode: true,
+        autoStartLoad: true,
       });
 
       hls.loadSource(url);
