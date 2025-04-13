@@ -33,6 +33,8 @@ const VideoPlayer = ({ url }) => {
   // Add a style tag to force landscape in fullscreen
   const styleTagRef = useRef(null);
 
+  const [isMuted, setIsMuted] = useState(true);
+
   const handleQualityChange = (levelIndex) => {
     if (!hlsRef.current) return;
     hlsRef.current.currentLevel = levelIndex;
@@ -90,7 +92,6 @@ const VideoPlayer = ({ url }) => {
         enableWorker: true,
         lowLatencyMode: true,
         autoStartLoad: true,
-        // Add recovery configurations
         manifestLoadingMaxRetry: 6,
         manifestLoadingRetryDelay: 1000,
         manifestLoadingMaxRetryTimeout: 10000,
@@ -495,6 +496,29 @@ const VideoPlayer = ({ url }) => {
     };
   }, []);
 
+  // Add function to handle unmuting
+  const handleUnmute = () => {
+    const video = videoRef.current;
+    if (video) {
+      video.muted = false;
+      setIsMuted(false);
+    }
+  };
+
+  // Add click handler for unmuting
+  useEffect(() => {
+    const video = videoRef.current;
+    if (video) {
+      const handleClick = () => {
+        if (isMuted) {
+          handleUnmute();
+        }
+      };
+      video.addEventListener('click', handleClick);
+      return () => video.removeEventListener('click', handleClick);
+    }
+  }, [isMuted]);
+
   return (
     <Box
       ref={containerRef}
@@ -554,6 +578,7 @@ const VideoPlayer = ({ url }) => {
           ref={videoRef}
           slot="media"
           playsInline
+          muted={isMuted}
           crossOrigin="anonymous"
           style={{
             width: '100%',
@@ -563,14 +588,33 @@ const VideoPlayer = ({ url }) => {
           }}
         />
 
-        {/* Media Chrome Controls */}
+        {/* Add unmute overlay if muted */}
+        {isMuted && (
+          <Box
+            position="absolute"
+            top="50%"
+            left="50%"
+            transform="translate(-50%, -50%)"
+            bg="rgba(0, 0, 0, 0.7)"
+            color="white"
+            px={4}
+            py={2}
+            borderRadius="md"
+            cursor="pointer"
+            onClick={handleUnmute}
+            zIndex={2}
+          >
+            Click to Unmute
+          </Box>
+        )}
+
         <media-control-bar>
           <media-play-button></media-play-button>
           <media-seek-backward-button seek-offset="10"></media-seek-backward-button>
           <media-seek-forward-button seek-offset="10"></media-seek-forward-button>
           <media-time-range></media-time-range>
           {showTimeDisplay && <media-time-display></media-time-display>}
-          <media-mute-button></media-mute-button>
+          <media-mute-button onClick={() => setIsMuted(prev => !prev)}></media-mute-button>
           {showVolumeRange && <media-volume-range></media-volume-range>}
 
           {/* Quality Selection */}
