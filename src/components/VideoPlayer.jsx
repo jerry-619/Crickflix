@@ -90,11 +90,70 @@ const VideoPlayer = ({ url }) => {
         enableWorker: true,
         lowLatencyMode: true,
         autoStartLoad: true,
+        // Add recovery configurations
+        manifestLoadingMaxRetry: 6,
+        manifestLoadingRetryDelay: 1000,
+        manifestLoadingMaxRetryTimeout: 10000,
+        levelLoadingMaxRetry: 6,
+        levelLoadingRetryDelay: 1000,
+        levelLoadingMaxRetryTimeout: 10000,
+        fragLoadingMaxRetry: 6,
+        fragLoadingRetryDelay: 1000,
+        fragLoadingMaxRetryTimeout: 10000,
       });
 
       hls.loadSource(url);
       hls.attachMedia(video);
       hlsRef.current = hls;
+
+      // Add playback monitoring
+      let playbackFailureCount = 0;
+      let lastPlaybackTime = 0;
+      let playbackStallCheckInterval;
+
+      const resetPlaybackMonitoring = () => {
+        playbackFailureCount = 0;
+        lastPlaybackTime = video.currentTime;
+      };
+
+      const startPlaybackMonitoring = () => {
+        if (playbackStallCheckInterval) {
+          clearInterval(playbackStallCheckInterval);
+        }
+        
+        playbackStallCheckInterval = setInterval(() => {
+          if (!video.paused) {
+            if (video.currentTime === lastPlaybackTime) {
+              playbackFailureCount++;
+              console.log('Playback appears stalled, count:', playbackFailureCount);
+              
+              if (playbackFailureCount >= 3) {
+                console.log('Playback stalled for too long, attempting recovery...');
+                // Try multiple recovery methods
+                if (hls) {
+                  hls.stopLoad();
+                  hls.startLoad();
+                  if (playbackFailureCount >= 5) {
+                    console.log('Attempting stream recovery by switching quality...');
+                    const currentLevel = hls.currentLevel;
+                    hls.currentLevel = -1; // Switch to auto quality
+                    setTimeout(() => {
+                      hls.currentLevel = currentLevel; // Switch back after 2 seconds
+                    }, 2000);
+                  }
+                }
+                playbackFailureCount = 0;
+              }
+            } else {
+              resetPlaybackMonitoring();
+            }
+            lastPlaybackTime = video.currentTime;
+          }
+        }, 2000);
+      };
+
+      // Start monitoring when playback begins
+      video.addEventListener('playing', startPlaybackMonitoring);
 
       hls.on(Hls.Events.MANIFEST_PARSED, (_, data) => {
         const qualityLevels = data.levels.map((level, index) => ({
@@ -128,20 +187,77 @@ const VideoPlayer = ({ url }) => {
       });
 
       hls.on(Hls.Events.ERROR, (_, data) => {
+        console.log('HLS Error:', data);
         if (data.fatal) {
           switch (data.type) {
             case Hls.ErrorTypes.NETWORK_ERROR:
-              hls.startLoad();
+              console.log('Fatal network error encountered, trying to recover...');
+              setTimeout(() => {
+                hls.startLoad();
+                video.play().catch(console.error);
+              }, 1000);
               break;
             case Hls.ErrorTypes.MEDIA_ERROR:
+              console.log('Fatal media error encountered, trying to recover...');
               hls.recoverMediaError();
+              video.play().catch(console.error);
               break;
             default:
+              console.log('Fatal error, trying to recover by recreating HLS...');
               hls.destroy();
+              // Reinitialize the player
+              const newHls = new Hls({
+                debug: false,
+                enableWorker: true,
+                lowLatencyMode: true,
+                autoStartLoad: true,
+              });
+              newHls.loadSource(url);
+              newHls.attachMedia(video);
+              hlsRef.current = newHls;
               break;
           }
         }
       });
+
+      // Add additional event listeners for better error detection
+      video.addEventListener('error', (e) => {
+        console.log('Video element error:', e.target.error);
+        if (hls) {
+          hls.startLoad();
+        }
+      });
+
+      video.addEventListener('stalled', () => {
+        console.log('Playback stalled, attempting to recover...');
+        if (hls) {
+          hls.startLoad();
+        }
+      });
+
+      video.addEventListener('waiting', () => {
+        console.log('Playback waiting...');
+        // If waiting for too long, try to recover
+        setTimeout(() => {
+          if (video.readyState < 3) {
+            console.log('Still waiting for too long, attempting recovery...');
+            if (hls) {
+              hls.startLoad();
+            }
+          }
+        }, 5000);
+      });
+
+      // Clean up interval on component unmount
+      return () => {
+        if (playbackStallCheckInterval) {
+          clearInterval(playbackStallCheckInterval);
+        }
+        if (hlsRef.current) {
+          hlsRef.current.destroy();
+          hlsRef.current = null;
+        }
+      };
     }
     // For Safari which has native HLS support
     else if (video.canPlayType('application/vnd.apple.mpegurl')) {
@@ -152,13 +268,6 @@ const VideoPlayer = ({ url }) => {
         });
       });
     }
-
-    return () => {
-      if (hlsRef.current) {
-        hlsRef.current.destroy();
-        hlsRef.current = null;
-      }
-    };
   }, [url]);
 
   // Check PiP support
