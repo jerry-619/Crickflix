@@ -131,16 +131,79 @@ const VideoPlayer = ({ url }) => {
                 console.log('Playback stalled for too long, attempting recovery...');
                 // Try multiple recovery methods
                 if (hls) {
-                  hls.stopLoad();
-                  hls.startLoad();
-                  if (playbackFailureCount >= 5) {
-                    console.log('Attempting stream recovery by switching quality...');
-                    const currentLevel = hls.currentLevel;
-                    hls.currentLevel = -1; // Switch to auto quality
-                    setTimeout(() => {
-                      hls.currentLevel = currentLevel; // Switch back after 2 seconds
+                  // Store current position and level
+                  const currentTime = video.currentTime;
+                  const currentLevel = hls.currentLevel;
+                  const wasPlaying = !video.paused;
+                  
+                  // Completely destroy current instance
+                  hls.destroy();
+                  
+                  // Create fresh instance
+                  const newHls = new Hls({
+                    debug: false,
+                    enableWorker: true,
+                    lowLatencyMode: true,
+                    autoStartLoad: true,
+                    manifestLoadingMaxRetry: 6,
+                    manifestLoadingRetryDelay: 1000,
+                    manifestLoadingMaxRetryTimeout: 10000,
+                    levelLoadingMaxRetry: 6,
+                    levelLoadingRetryDelay: 1000,
+                    levelLoadingMaxRetryTimeout: 10000,
+                    fragLoadingMaxRetry: 6,
+                    fragLoadingRetryDelay: 1000,
+                    fragLoadingMaxRetryTimeout: 10000,
+                  });
+
+                  // Setup event handlers before loading
+                  let playAttempts = 0;
+                  const maxPlayAttempts = 5;
+
+                  const attemptPlay = () => {
+                    if (playAttempts >= maxPlayAttempts) return;
+                    playAttempts++;
+                    
+                    video.play().catch((error) => {
+                      console.log('Play attempt failed:', error);
+                      if (error.name === 'AbortError' || error.name === 'NotAllowedError') {
+                        // Wait a bit longer before next attempt
+                        setTimeout(attemptPlay, 1000);
+                      }
+                    });
+                  };
+
+                  // Handle media loading states
+                  video.addEventListener('loadedmetadata', () => {
+                    video.currentTime = currentTime;
+                  }, { once: true });
+
+                  video.addEventListener('canplay', () => {
+                    if (wasPlaying) {
+                      attemptPlay();
+                    }
+                  }, { once: true });
+
+                  // Reinitialize with same source
+                  newHls.loadSource(url);
+                  newHls.attachMedia(video);
+                  hlsRef.current = newHls;
+                  
+                  // Once loaded, restore quality level
+                  newHls.on(Hls.Events.MANIFEST_PARSED, () => {
+                    newHls.currentLevel = currentLevel;
+                  });
+
+                  // Monitor for waiting state
+                  let waitingTimeout;
+                  video.addEventListener('waiting', () => {
+                    if (waitingTimeout) clearTimeout(waitingTimeout);
+                    waitingTimeout = setTimeout(() => {
+                      if (video.readyState < 3 && wasPlaying) {
+                        attemptPlay();
+                      }
                     }, 2000);
-                  }
+                  });
                 }
                 playbackFailureCount = 0;
               }
