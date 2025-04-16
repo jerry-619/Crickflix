@@ -1,8 +1,9 @@
 import { BrowserRouter as Router } from 'react-router-dom';
-import { ChakraProvider, Box } from '@chakra-ui/react';
+import { ChakraProvider, Box, Flex } from '@chakra-ui/react';
 import { HelmetProvider } from 'react-helmet-async';
 import theme from './theme.js';
 import Navbar from './components/Navbar';
+import Footer from './components/Footer';
 import AppRoutes from './routes';
 import { SocketProvider } from './context/SocketContext';
 import TelegramPopup from './components/TelegramPopup';
@@ -16,12 +17,15 @@ const App = () => {
       <ChakraProvider theme={theme}>
         <SocketProvider>
           <Router>
-            <Box minH="100vh" bg="gray.900">
+            <Flex direction="column" minH="100vh" bg="gray.900">
               <SEO />
               <Navbar />
-              <AppRoutes />
+              <Box flex="1">
+                <AppRoutes />
+              </Box>
+              <Footer />
               <TelegramPopup />
-            </Box>
+            </Flex>
             <Analytics />
           </Router>
         </SocketProvider>
