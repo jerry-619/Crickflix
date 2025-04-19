@@ -26,6 +26,7 @@ import {
 import axios from 'axios';
 import VideoPlayer from '../components/VideoPlayer';
 import PredictionTabs from '../components/PredictionTabs';
+import ShareButtons from '../components/ShareButtons';
 import { FiMonitor, FiPlay, FiLink, FiCalendar, FiUser, FiEye } from 'react-icons/fi';
 import moment from 'moment-timezone';
 import SEO from '../components/SEO';
@@ -242,9 +243,15 @@ const MatchPlayer = () => {
               {/* Match Info */}
               <Box>
                 <VStack spacing={4} align="stretch">
-                  <HStack spacing={4}>
-                    {getStatusBadge(match.status)}
-                    <Text color="gray.500">{formatViews(match.views)}</Text>
+                  <HStack spacing={4} justify="space-between" wrap="wrap">
+                    <HStack spacing={4}>
+                      {getStatusBadge(match.status)}
+                      <Text color="gray.500">{formatViews(match.views)}</Text>
+                    </HStack>
+                    <ShareButtons 
+                      title={match.title}
+                      url={`${import.meta.env.VITE_FRONTEND_URL}/match/${match._id}`}
+                    />
                   </HStack>
                   
                   <Heading 
@@ -439,14 +446,45 @@ const MatchPlayer = () => {
         {/* Match Info & Predictions Section */}
         <Container maxW="8xl" py={8}>
           <VStack spacing={6} align="stretch">
-            {/* Match Info */}
+            {/* Status and Share Buttons */}
+            <HStack spacing={4} justify="space-between" wrap="wrap">
+              <HStack spacing={4}>
+                {getStatusBadge(match.status)}
+                <Text color="gray.500">{formatViews(match.views)}</Text>
+              </HStack>
+              <ShareButtons 
+                title={match.title}
+                url={`${import.meta.env.VITE_FRONTEND_URL}/match/${match._id}`}
+              />
+            </HStack>
+
+            {/* Stream Source Selection */}
+            {allSources.length > 1 && (
+              <Box>
+                <Text fontWeight="bold" mb={2}>Available Streams:</Text>
+                <ButtonGroup spacing={2} flexWrap="wrap" gap={2}>
+                  {allSources.map((source, index) => (
+                    <Button
+                      key={index}
+                      leftIcon={<Icon as={source.type === 'iframe' ? FiMonitor : FiPlay} />}
+                      onClick={() => setSelectedSource(source)}
+                      bg={selectedSource?.url === source.url ? buttonActiveBg : buttonBg}
+                      color={selectedSource?.url === source.url ? buttonActiveColor : undefined}
+                      _hover={{ bg: buttonHoverBg }}
+                      size="sm"
+                    >
+                      {source.name || `Stream ${index + 1}`}
+                    </Button>
+                  ))}
+                </ButtonGroup>
+              </Box>
+            )}
+
+            <Divider my={4} />
+
+            {/* Match Title and Info */}
             <Box>
               <VStack spacing={4} align="stretch">
-                <HStack spacing={4}>
-                  {getStatusBadge(match.status)}
-                  <Text color="gray.500">{formatViews(match.views)}</Text>
-                </HStack>
-                
                 <Heading 
                   size={{ base: "md", md: "lg" }} 
                   textAlign={{ base: "center", md: "left" }}
@@ -543,31 +581,9 @@ const MatchPlayer = () => {
               </VStack>
             </Box>
 
-            {/* Stream Source Selection */}
-            {allSources.length > 1 && (
-              <Box>
-                <Text fontWeight="bold" mb={2}>Available Streams:</Text>
-                <ButtonGroup spacing={2} flexWrap="wrap" gap={2}>
-                  {allSources.map((source, index) => (
-                    <Button
-                      key={index}
-                      leftIcon={<Icon as={source.type === 'iframe' ? FiMonitor : FiPlay} />}
-                      onClick={() => setSelectedSource(source)}
-                      bg={selectedSource?.url === source.url ? buttonActiveBg : buttonBg}
-                      color={selectedSource?.url === source.url ? buttonActiveColor : undefined}
-                      _hover={{ bg: buttonHoverBg }}
-                      size="sm"
-                    >
-                      {source.name || `Stream ${index + 1}`}
-                    </Button>
-                  ))}
-                </ButtonGroup>
-              </Box>
-            )}
-
             <Divider my={4} />
 
-            {/* Predictions Section - Now shown for both upcoming and live matches */}
+            {/* Predictions Section */}
             {(match.status === 'upcoming' || match.status === 'live') && (
               <Box>
                 <PredictionTabs matchId={id} />
