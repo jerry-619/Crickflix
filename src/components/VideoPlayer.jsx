@@ -8,6 +8,12 @@ import {
   MenuItem,
   Button,
   useBreakpointValue,
+  Alert,
+  AlertIcon,
+  AlertTitle,
+  AlertDescription,
+  VStack,
+  Text,
 } from '@chakra-ui/react';
 import { ChevronDownIcon } from '@chakra-ui/icons';
 import 'media-chrome';
@@ -21,6 +27,11 @@ const VideoPlayer = ({ url }) => {
   const [currentAudio, setCurrentAudio] = useState(-1);
   const containerRef = useRef(null);
   const mediaControllerRef = useRef(null);
+  const [streamError, setStreamError] = useState(false);
+  const [retryCount, setRetryCount] = useState(0);
+  const MAX_RETRIES = 3;
+  const [isPlaying, setIsPlaying] = useState(false);
+  const playAttemptTimeoutRef = useRef(null);
   // Responsive controls based on screen size
   const showVolumeRange = useBreakpointValue({ base: false, md: true });
   const showTimeDisplay = useBreakpointValue({ base: false, sm: true });
@@ -76,262 +87,229 @@ const VideoPlayer = ({ url }) => {
     }, 300);
   };
 
+  // Function to attempt playback
+  const attemptPlay = async (video, maxAttempts = 3, currentAttempt = 1) => {
+    if (!video || currentAttempt > maxAttempts) {
+      setStreamError(true);
+      return false;
+    }
+
+    try {
+      await video.play();
+      return true;
+    } catch (error) {
+      console.log(`Play attempt ${currentAttempt} failed:`, error);
+      
+      if (error.name !== 'AbortError') {
+        if (currentAttempt >= maxAttempts) {
+          setStreamError(true);
+          return false;
+        }
+        await new Promise(resolve => setTimeout(resolve, 1000));
+        return attemptPlay(video, maxAttempts, currentAttempt + 1);
+      }
+      return false;
+    }
+  };
+
   // Initialize HLS player
   useEffect(() => {
     const video = videoRef.current;
     if (!video || !url) return;
 
-    // Initialize HLS if supported
-    if (Hls.isSupported()) {
-      if (hlsRef.current) {
-        hlsRef.current.destroy();
-      }
+    if (playAttemptTimeoutRef.current) {
+      clearTimeout(playAttemptTimeoutRef.current);
+    }
 
-      const hls = new Hls({
-        debug: false,
-        enableWorker: true,
-        lowLatencyMode: true,
-        autoStartLoad: true,
-        manifestLoadingMaxRetry: 6,
-        manifestLoadingRetryDelay: 1000,
-        manifestLoadingMaxRetryTimeout: 10000,
-        levelLoadingMaxRetry: 6,
-        levelLoadingRetryDelay: 1000,
-        levelLoadingMaxRetryTimeout: 10000,
-        fragLoadingMaxRetry: 6,
-        fragLoadingRetryDelay: 1000,
-        fragLoadingMaxRetryTimeout: 10000,
-      });
+    setStreamError(false);
+    setRetryCount(0);
+    setIsPlaying(false);
 
-      hls.loadSource(url);
-      hls.attachMedia(video);
-      hlsRef.current = hls;
+    let playbackFailureCount = 0;
+    let lastPlaybackTime = 0;
+    let playbackStallCheckInterval;
+    let isDestroyed = false;
+    let loadTimeout = null;
 
-      // Add playback monitoring
-      let playbackFailureCount = 0;
-      let lastPlaybackTime = 0;
-      let playbackStallCheckInterval;
-
-      const resetPlaybackMonitoring = () => {
-        playbackFailureCount = 0;
-        lastPlaybackTime = video.currentTime;
-      };
-
-      const startPlaybackMonitoring = () => {
-        if (playbackStallCheckInterval) {
-          clearInterval(playbackStallCheckInterval);
-        }
-        
-        playbackStallCheckInterval = setInterval(() => {
-          if (!video.paused) {
-            if (video.currentTime === lastPlaybackTime) {
-              playbackFailureCount++;
-              console.log('Playback appears stalled, count:', playbackFailureCount);
-              
-              if (playbackFailureCount >= 3) {
-                console.log('Playback stalled for too long, attempting recovery...');
-                // Try multiple recovery methods
-                if (hls) {
-                  // Store current position and level
-                  const currentTime = video.currentTime;
-                  const currentLevel = hls.currentLevel;
-                  const wasPlaying = !video.paused;
-                  
-                  // Completely destroy current instance
-                  hls.destroy();
-                  
-                  // Create fresh instance
-                  const newHls = new Hls({
-                    debug: false,
-                    enableWorker: true,
-                    lowLatencyMode: true,
-                    autoStartLoad: true,
-                    manifestLoadingMaxRetry: 6,
-                    manifestLoadingRetryDelay: 1000,
-                    manifestLoadingMaxRetryTimeout: 10000,
-                    levelLoadingMaxRetry: 6,
-                    levelLoadingRetryDelay: 1000,
-                    levelLoadingMaxRetryTimeout: 10000,
-                    fragLoadingMaxRetry: 6,
-                    fragLoadingRetryDelay: 1000,
-                    fragLoadingMaxRetryTimeout: 10000,
-                  });
-
-                  // Setup event handlers before loading
-                  let playAttempts = 0;
-                  const maxPlayAttempts = 5;
-
-                  const attemptPlay = () => {
-                    if (playAttempts >= maxPlayAttempts) return;
-                    playAttempts++;
-                    
-                    video.play().catch((error) => {
-                      console.log('Play attempt failed:', error);
-                      if (error.name === 'AbortError' || error.name === 'NotAllowedError') {
-                        // Wait a bit longer before next attempt
-                        setTimeout(attemptPlay, 1000);
-                      }
-                    });
-                  };
-
-                  // Handle media loading states
-                  video.addEventListener('loadedmetadata', () => {
-                    video.currentTime = currentTime;
-                  }, { once: true });
-
-                  video.addEventListener('canplay', () => {
-                    if (wasPlaying) {
-                      attemptPlay();
-                    }
-                  }, { once: true });
-
-                  // Reinitialize with same source
-                  newHls.loadSource(url);
-                  newHls.attachMedia(video);
-                  hlsRef.current = newHls;
-                  
-                  // Once loaded, restore quality level
-                  newHls.on(Hls.Events.MANIFEST_PARSED, () => {
-                    newHls.currentLevel = currentLevel;
-                  });
-
-                  // Monitor for waiting state
-                  let waitingTimeout;
-                  video.addEventListener('waiting', () => {
-                    if (waitingTimeout) clearTimeout(waitingTimeout);
-                    waitingTimeout = setTimeout(() => {
-                      if (video.readyState < 3 && wasPlaying) {
-                        attemptPlay();
-                      }
-                    }, 2000);
-                  });
-                }
-                playbackFailureCount = 0;
-              }
-            } else {
-              resetPlaybackMonitoring();
-            }
-            lastPlaybackTime = video.currentTime;
-          }
-        }, 2000);
-      };
-
-      // Start monitoring when playback begins
-      video.addEventListener('playing', startPlaybackMonitoring);
-
-      hls.on(Hls.Events.MANIFEST_PARSED, (_, data) => {
-        const qualityLevels = data.levels.map((level, index) => ({
-          index,
-          height: level.height || level.width?.height,
-          bitrate: level.bitrate
-        })).filter(level => level.height);
-
-        if (qualityLevels.length > 1) {
-          setQualities(qualityLevels);
-          setCurrentQuality(hls.currentLevel);
-        } else {
-          setQualities([]);
-        }
-
-        const tracks = hls.audioTracks || [];
-        setAudioTracks(tracks);
-        setCurrentAudio(hls.audioTrack);
-
-        video.play().catch(error => {
-          console.log('Autoplay prevented:', error);
-        });
-      });
-
-      hls.on(Hls.Events.LEVEL_SWITCHED, (_, data) => {
-        setCurrentQuality(data.level);
-      });
-
-      hls.on(Hls.Events.AUDIO_TRACK_SWITCHED, (_, data) => {
-        setCurrentAudio(data.id);
-      });
-
-      hls.on(Hls.Events.ERROR, (_, data) => {
-        console.log('HLS Error:', data);
-        if (data.fatal) {
-          switch (data.type) {
-            case Hls.ErrorTypes.NETWORK_ERROR:
-              console.log('Fatal network error encountered, trying to recover...');
-              setTimeout(() => {
-                hls.startLoad();
-                video.play().catch(console.error);
-              }, 1000);
-              break;
-            case Hls.ErrorTypes.MEDIA_ERROR:
-              console.log('Fatal media error encountered, trying to recover...');
-              hls.recoverMediaError();
-              video.play().catch(console.error);
-              break;
-            default:
-              console.log('Fatal error, trying to recover by recreating HLS...');
-              hls.destroy();
-              // Reinitialize the player
-              const newHls = new Hls({
-                debug: false,
-                enableWorker: true,
-                lowLatencyMode: true,
-                autoStartLoad: true,
-              });
-              newHls.loadSource(url);
-              newHls.attachMedia(video);
-              hlsRef.current = newHls;
-              break;
-          }
-        }
-      });
-
-      // Add additional event listeners for better error detection
-      video.addEventListener('error', (e) => {
-        console.log('Video element error:', e.target.error);
-        if (hls) {
-          hls.startLoad();
-        }
-      });
-
-      video.addEventListener('stalled', () => {
-        console.log('Playback stalled, attempting to recover...');
-        if (hls) {
-          hls.startLoad();
-        }
-      });
-
-      video.addEventListener('waiting', () => {
-        console.log('Playback waiting...');
-        // If waiting for too long, try to recover
-        setTimeout(() => {
-          if (video.readyState < 3) {
-            console.log('Still waiting for too long, attempting recovery...');
-            if (hls) {
-              hls.startLoad();
-            }
-          }
-        }, 5000);
-      });
-
-      // Clean up interval on component unmount
-      return () => {
-        if (playbackStallCheckInterval) {
-          clearInterval(playbackStallCheckInterval);
-        }
+    const initPlayer = async () => {
+      if (Hls.isSupported()) {
         if (hlsRef.current) {
           hlsRef.current.destroy();
-          hlsRef.current = null;
         }
-      };
-    }
-    // For Safari which has native HLS support
-    else if (video.canPlayType('application/vnd.apple.mpegurl')) {
-      video.src = url;
-      video.addEventListener('loadedmetadata', () => {
-        video.play().catch(error => {
-          console.log('Autoplay prevented:', error);
+
+        const hls = new Hls({
+          debug: false,
+          enableWorker: true,
+          lowLatencyMode: true,
+          autoStartLoad: true,
+          manifestLoadingMaxRetry: 2,
+          manifestLoadingRetryDelay: 500,
+          manifestLoadingMaxRetryTimeout: 5000,
+          levelLoadingMaxRetry: 2,
+          levelLoadingRetryDelay: 500,
+          levelLoadingMaxRetryTimeout: 5000,
+          fragLoadingMaxRetry: 2,
+          fragLoadingRetryDelay: 500,
+          fragLoadingMaxRetryTimeout: 5000,
         });
-      });
-    }
+
+        hlsRef.current = hls;
+
+        // Set a timeout to show error if stream doesn't load
+        loadTimeout = setTimeout(() => {
+          if (!isDestroyed && !isPlaying) {
+            setStreamError(true);
+          }
+        }, 10000);
+
+        const handleStreamError = () => {
+          if (isDestroyed) return;
+          
+          setRetryCount(prev => {
+            const newCount = prev + 1;
+            if (newCount >= MAX_RETRIES) {
+              setStreamError(true);
+              setIsPlaying(false);
+            } else {
+              playAttemptTimeoutRef.current = setTimeout(() => {
+                if (!isDestroyed) {
+                  hls.startLoad();
+                  attemptPlay(video);
+                }
+              }, 1000);
+            }
+            return newCount;
+          });
+        };
+
+        // Error handling
+        hls.on(Hls.Events.ERROR, (event, data) => {
+          console.log('HLS Error:', data);
+          if (data.fatal || data.type === Hls.ErrorTypes.NETWORK_ERROR) {
+            handleStreamError();
+          }
+        });
+
+        // Monitor playback
+        const startPlaybackMonitoring = () => {
+          if (playbackStallCheckInterval) {
+            clearInterval(playbackStallCheckInterval);
+          }
+
+          playbackStallCheckInterval = setInterval(() => {
+            if (!video.paused && !streamError) {
+              if (video.currentTime === lastPlaybackTime) {
+                playbackFailureCount++;
+                if (playbackFailureCount >= 2) {  // Reduced from 3 to 2
+                  handleStreamError();
+                  playbackFailureCount = 0;
+                }
+              } else {
+                playbackFailureCount = 0;
+                lastPlaybackTime = video.currentTime;
+              }
+            }
+          }, 1500);  // Reduced from 2000 to 1500
+        };
+
+        // Load source and attach media
+        hls.loadSource(url);
+        hls.attachMedia(video);
+
+        // Handle manifest parsed
+        hls.on(Hls.Events.MANIFEST_PARSED, async (_, data) => {
+          if (loadTimeout) {
+            clearTimeout(loadTimeout);
+          }
+
+          const qualityLevels = data.levels.map((level, index) => ({
+            index,
+            height: level.height || level.width?.height,
+            bitrate: level.bitrate
+          })).filter(level => level.height);
+
+          if (qualityLevels.length > 1) {
+            setQualities(qualityLevels);
+            setCurrentQuality(hls.currentLevel);
+          } else {
+            setQualities([]);
+          }
+
+          const tracks = hls.audioTracks || [];
+          setAudioTracks(tracks);
+          setCurrentAudio(hls.audioTrack);
+
+          // Attempt autoplay
+          const playSuccess = await attemptPlay(video);
+          if (!playSuccess && !isDestroyed) {
+            setStreamError(true);
+          }
+        });
+
+        // Event listeners
+        video.addEventListener('playing', () => {
+          setIsPlaying(true);
+          setStreamError(false);
+          startPlaybackMonitoring();
+        });
+
+        video.addEventListener('pause', () => {
+          setIsPlaying(false);
+        });
+
+        video.addEventListener('error', () => {
+          console.log('Video error:', video.error);
+          handleStreamError();
+        });
+
+        video.addEventListener('stalled', () => {
+          console.log('Stream stalled');
+          handleStreamError();
+        });
+
+        video.addEventListener('waiting', () => {
+          if (!streamError) {
+            playAttemptTimeoutRef.current = setTimeout(() => {
+              if (video.readyState < 3) {
+                console.log('Stream waiting too long');
+                handleStreamError();
+              }
+            }, 5000);
+          }
+        });
+      }
+      // Safari native HLS support
+      else if (video.canPlayType('application/vnd.apple.mpegurl')) {
+        video.src = url;
+        video.addEventListener('loadedmetadata', async () => {
+          const playSuccess = await attemptPlay(video);
+          if (!playSuccess && !isDestroyed) {
+            setStreamError(true);
+          }
+        });
+      }
+    };
+
+    initPlayer();
+
+    // Cleanup
+    return () => {
+      isDestroyed = true;
+      if (loadTimeout) {
+        clearTimeout(loadTimeout);
+      }
+      if (playAttemptTimeoutRef.current) {
+        clearTimeout(playAttemptTimeoutRef.current);
+      }
+      if (playbackStallCheckInterval) {
+        clearInterval(playbackStallCheckInterval);
+      }
+      if (hlsRef.current) {
+        hlsRef.current.destroy();
+        hlsRef.current = null;
+      }
+      setIsPlaying(false);
+    };
   }, [url]);
 
   // Check PiP support
@@ -761,6 +739,44 @@ const VideoPlayer = ({ url }) => {
               }
             `}
           </style>
+        )}
+
+        {/* Error Overlay - Now persistent */}
+        {streamError && (
+          <Box
+            position="absolute"
+            top="0"
+            left="0"
+            width="100%"
+            height="100%"
+            bg="blackAlpha.700"
+            display="flex"
+            alignItems="center"
+            justifyContent="center"
+            zIndex="10"
+            pointerEvents="all"
+          >
+            <VStack spacing={4} maxW="80%" textAlign="center">
+              <Alert
+                status="error"
+                variant="solid"
+                flexDirection="column"
+                alignItems="center"
+                justifyContent="center"
+                textAlign="center"
+                borderRadius="md"
+                p={4}
+              >
+                <AlertIcon boxSize="2rem" />
+                <AlertTitle mt={4} mb={1} fontSize="lg">
+                  Stream Not Available
+                </AlertTitle>
+                <AlertDescription maxWidth="sm">
+                  This stream is not working. Please select a different stream from the options below.
+                </AlertDescription>
+              </Alert>
+            </VStack>
+          </Box>
         )}
       </media-controller>
     </Box>
