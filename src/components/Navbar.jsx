@@ -1,4 +1,4 @@
-import { Link as RouterLink } from 'react-router-dom';
+import { Link as RouterLink, useLocation } from 'react-router-dom';
 import {
   Box,
   Flex,
@@ -11,15 +11,35 @@ import {
   Collapse,
   useColorModeValue,
   Image,
+  VStack,
+  Divider,
 } from '@chakra-ui/react';
 import { HamburgerIcon, CloseIcon } from '@chakra-ui/icons';
+import { FaQuestionCircle, FaHome, FaList, FaPlay, FaBlog } from 'react-icons/fa';
 import ColorModeToggle from './ColorModeToggle';
+import { useEffect } from 'react';
 
 const Navbar = () => {
-  const { isOpen, onToggle } = useDisclosure();
+  const { isOpen, onToggle, onClose } = useDisclosure();
+  const location = useLocation();
   const bgColor = useColorModeValue('white', 'gray.800');
   const textColor = useColorModeValue('gray.800', 'white');
   const borderColor = useColorModeValue('gray.200', 'whiteAlpha.200');
+  const mobileMenuBg = useColorModeValue('rgba(255, 255, 255, 0.97)', 'rgba(26, 32, 44, 0.97)');
+  const mobileItemHoverBg = useColorModeValue('gray.50', 'whiteAlpha.100');
+
+  // Close menu when route changes
+  useEffect(() => {
+    onClose();
+  }, [location.pathname, onClose]);
+
+  const navItems = [
+    { name: 'Home', path: '/', icon: FaHome },
+    { name: 'Categories', path: '/categories', icon: FaList },
+    { name: 'Live Matches', path: '/live', icon: FaPlay },
+    { name: 'Blogs', path: '/blogs', icon: FaBlog },
+    { name: 'Help Center', path: '/help', icon: FaQuestionCircle },
+  ];
 
   return (
     <Box bg={bgColor} px={4} position="sticky" top={0} zIndex={1000} borderBottom="1px" borderColor={borderColor}>
@@ -30,6 +50,7 @@ const Navbar = () => {
             as={RouterLink}
             to="/"
             _hover={{ textDecoration: 'none' }}
+            onClick={onClose}
           >
             <Flex align="center" pt={1}>
               <Image src="/logo.png" alt="CrickFlix Logo" h="62px" objectFit="contain" />
@@ -43,42 +64,22 @@ const Navbar = () => {
             align="center"
             display={{ base: 'none', md: 'flex' }}
           >
-            <Link
-              as={RouterLink}
-              to="/"
-              color={textColor}
-              fontWeight="medium"
-              _hover={{ color: 'brand.400' }}
-            >
-              Home
-            </Link>
-            <Link
-              as={RouterLink}
-              to="/categories"
-              color={textColor}
-              fontWeight="medium"
-              _hover={{ color: 'brand.400' }}
-            >
-              Categories
-            </Link>
-            <Link
-              as={RouterLink}
-              to="/live"
-              color={textColor}
-              fontWeight="medium"
-              _hover={{ color: 'brand.400' }}
-            >
-              Live Matches
-            </Link>
-            <Link
-              as={RouterLink}
-              to="/blogs"
-              color={textColor}
-              fontWeight="medium"
-              _hover={{ color: 'brand.400' }}
-            >
-              Blogs
-            </Link>
+            {navItems.map((item, index) => (
+              <Link
+                key={index}
+                as={RouterLink}
+                to={item.path}
+                color={textColor}
+                fontWeight="medium"
+                display="flex"
+                alignItems="center"
+                gap={1}
+                _hover={{ color: 'brand.400' }}
+              >
+                <Box as={item.icon} />
+                {item.name === 'Help Center' ? 'Help' : item.name}
+              </Link>
+            ))}
             <ColorModeToggle />
           </Stack>
 
@@ -98,79 +99,49 @@ const Navbar = () => {
 
         {/* Mobile Navigation */}
         <Collapse in={isOpen} animateOpacity>
-          <Stack
-            bg={bgColor}
-            p={4}
+          <VStack
+            bg={mobileMenuBg}
             display={{ md: 'none' }}
-            spacing={4}
-            direction="column"
-            align="start"
-            w="100%"
+            spacing={0}
+            align="stretch"
             position="absolute"
             left={0}
+            right={0}
             top="64px"
-            zIndex={2}
             borderTop="1px"
             borderColor={borderColor}
+            backdropFilter="blur(10px)"
             shadow="lg"
           >
-            <Link
-              as={RouterLink}
-              to="/"
-              color={textColor}
-              fontWeight="medium"
-              w="100%"
-              p={2}
-              _hover={{ 
-                color: 'brand.400',
-                bg: useColorModeValue('gray.100', 'whiteAlpha.100')
-              }}
-            >
-              Home
-            </Link>
-            <Link
-              as={RouterLink}
-              to="/categories"
-              color={textColor}
-              fontWeight="medium"
-              w="100%"
-              p={2}
-              _hover={{ 
-                color: 'brand.400',
-                bg: useColorModeValue('gray.100', 'whiteAlpha.100')
-              }}
-            >
-              Categories
-            </Link>
-            <Link
-              as={RouterLink}
-              to="/live"
-              color={textColor}
-              fontWeight="medium"
-              w="100%"
-              p={2}
-              _hover={{ 
-                color: 'brand.400',
-                bg: useColorModeValue('gray.100', 'whiteAlpha.100')
-              }}
-            >
-              Live Matches
-            </Link>
-            <Link
-              as={RouterLink}
-              to="/blogs"
-              color={textColor}
-              fontWeight="medium"
-              w="100%"
-              p={2}
-              _hover={{ 
-                color: 'brand.400',
-                bg: useColorModeValue('gray.100', 'whiteAlpha.100')
-              }}
-            >
-              Blogs
-            </Link>
-          </Stack>
+            {navItems.map((item, index) => (
+              <Box key={index}>
+                <Link
+                  as={RouterLink}
+                  to={item.path}
+                  w="100%"
+                  display="flex"
+                  alignItems="center"
+                  gap={3}
+                  p={4}
+                  color={textColor}
+                  fontWeight="500"
+                  onClick={onClose}
+                  _hover={{
+                    textDecoration: 'none',
+                    bg: mobileItemHoverBg,
+                    color: 'brand.400',
+                  }}
+                  transition="all 0.2s"
+                >
+                  <Box as={item.icon} fontSize="1.2em" />
+                  {item.name}
+                </Link>
+                {index < navItems.length - 1 && (
+                  <Divider borderColor={borderColor} opacity={0.5} />
+                )}
+              </Box>
+            ))}
+          </VStack>
         </Collapse>
       </Container>
     </Box>
