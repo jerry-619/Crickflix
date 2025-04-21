@@ -32,8 +32,8 @@ const TelegramPopup = () => {
       const { lastSeen } = JSON.parse(popupData);
       const hoursSinceLastSeen = (currentTime - lastSeen) / (1000 * 60 * 60);
       
-      // Show popup again if it's been more than 24 hours
-      if (hoursSinceLastSeen >= 24) {
+      // Show popup again if it's been more than 3 days
+      if (hoursSinceLastSeen >= 72) {
         onOpen();
       } else {
         setHasSeenPopup(true);
