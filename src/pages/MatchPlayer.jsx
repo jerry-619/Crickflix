@@ -347,9 +347,11 @@ const MatchPlayer = () => {
               </Box>
 
               {/* Predictions Section */}
-              <Box>
-                <PredictionTabs matchId={id} />
-              </Box>
+              {match.category?.name?.toLowerCase().includes('ipl') && (
+                <Box>
+                  <PredictionTabs matchId={id} />
+                </Box>
+              )}
             </VStack>
           </Container>
         </Box>
@@ -584,7 +586,7 @@ const MatchPlayer = () => {
             <Divider my={4} />
 
             {/* Predictions Section */}
-            {(match.status === 'upcoming' || match.status === 'live') && (
+            {match.category?.name?.toLowerCase().includes('ipl') && (
               <Box>
                 <PredictionTabs matchId={id} />
               </Box>

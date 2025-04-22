@@ -24,6 +24,8 @@ const App = () => {
                 <AppRoutes />
               </Box>
               <Footer />
+               {/* Mobile Bottom Spacer - Only visible on mobile to prevent footer overlap */}
+              <Box display={{ base: 'block', md: 'none' }} h="70px" />
               <TelegramPopup />
             </Flex>
             <Analytics />
