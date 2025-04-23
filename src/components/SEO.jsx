@@ -30,14 +30,15 @@ const SEO = ({
   const formattedKeywords = truncateText(keywords, KEYWORDS_MAX_LENGTH);
 
   // Default values
-  const defaultTitle = 'CrickFlix - Live Cricket Streaming | Watch Cricket Online';
-  const defaultDescription = 'Watch live cricket matches online for free at CrickFlix. Stream IPL, World Cup, and international cricket matches in HD quality. Best cricket streaming platform in India.';
-  const defaultKeywords = 'cricket streaming, live cricket, watch cricket online, cricket live stream, IPL live, cricket streaming india, live cricket match today';
+  const defaultTitle = 'CrickFlix - Live Cricket Streaming | Watch Cricket Online Free';
+  const defaultDescription = 'Watch live cricket matches online for free at CrickFlix. Stream IPL 2025, World Cup, and international cricket matches in HD quality. Best cricket streaming platform in India.';
+  const defaultKeywords = 'cricket streaming, live cricket, watch cricket online, cricket live stream, IPL live streaming, cricket streaming india, live cricket match today, free cricket streaming';
   const defaultImage = `${DOMAIN}/og-image.jpg`;
 
-  // Generate full URLs
-  const currentUrl = canonicalUrl ? `${DOMAIN}${canonicalUrl}` : window.location.href.replace(window.location.origin, DOMAIN);
-  const imageUrl = ogImage ? `${DOMAIN}${ogImage}` : defaultImage;
+  // Generate canonical URL
+  const currentPath = window.location.pathname;
+  const canonicalPath = canonicalUrl || currentPath;
+  const fullCanonicalUrl = `${DOMAIN}${canonicalPath}`;
 
   return (
     <>
@@ -50,27 +51,27 @@ const SEO = ({
 
         {/* Language and Region */}
         <meta property="og:locale" content="en_IN" />
-        <link rel="alternate" href={currentUrl} hrefLang="en-in" />
+        <link rel="alternate" href={fullCanonicalUrl} hrefLang="en-in" />
         <meta name="geo.region" content="IN" />
         <meta name="geo.position" content="20.5937;78.9629" />
         <meta name="ICBM" content="20.5937, 78.9629" />
 
         {/* Open Graph / Facebook */}
         <meta property="og:type" content="website" />
-        <meta property="og:url" content={currentUrl} />
+        <meta property="og:url" content={fullCanonicalUrl} />
         <meta property="og:site_name" content="CrickFlix" />
         <meta property="og:title" content={ogTitle || formattedTitle || defaultTitle} />
         <meta property="og:description" content={ogDescription || formattedDesc || defaultDescription} />
-        <meta property="og:image" content={imageUrl} />
+        <meta property="og:image" content={ogImage || defaultImage} />
         <meta property="og:image:width" content="1200" />
         <meta property="og:image:height" content="630" />
 
         {/* Twitter */}
         <meta name="twitter:card" content="summary_large_image" />
-        <meta name="twitter:url" content={currentUrl} />
+        <meta name="twitter:url" content={fullCanonicalUrl} />
         <meta name="twitter:title" content={ogTitle || formattedTitle || defaultTitle} />
         <meta name="twitter:description" content={ogDescription || formattedDesc || defaultDescription} />
-        <meta name="twitter:image" content={imageUrl} />
+        <meta name="twitter:image" content={ogImage || defaultImage} />
 
         {/* Mobile Specific */}
         <meta name="format-detection" content="telephone=no" />
@@ -81,7 +82,15 @@ const SEO = ({
         <meta name="theme-color" content="#1A202C" />
 
         {/* Canonical URL */}
-        <link rel="canonical" href={currentUrl} />
+        <link rel="canonical" href={fullCanonicalUrl} />
+
+        {/* Additional SEO Meta Tags */}
+        <meta name="robots" content="index, follow" />
+        <meta name="googlebot" content="index, follow" />
+        <meta name="rating" content="general" />
+        <meta name="coverage" content="Worldwide" />
+        <meta name="target" content="all" />
+        <meta name="HandheldFriendly" content="True" />
 
         {/* Structured Data */}
         {structuredData && (
@@ -92,6 +101,14 @@ const SEO = ({
               "url": DOMAIN,
               "name": "CrickFlix",
               "description": defaultDescription,
+              "potentialAction": {
+                "@type": "SearchAction",
+                "target": {
+                  "@type": "EntryPoint",
+                  "urlTemplate": `${DOMAIN}/search?q={search_term_string}`
+                },
+                "query-input": "required name=search_term_string"
+              },
               ...structuredData
             })}
           </script>
