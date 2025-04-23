@@ -52,9 +52,9 @@ const VideoPlayer = ({ url, type = 'm3u8', drmConfig = null }) => {
 
   const handleQualityChange = (levelIndex) => {
     if (type === 'm3u8') {
-      if (!hlsRef.current) return;
-      hlsRef.current.currentLevel = levelIndex;
-      setCurrentQuality(levelIndex);
+    if (!hlsRef.current) return;
+    hlsRef.current.currentLevel = levelIndex;
+    setCurrentQuality(levelIndex);
     } else if (type === 'dashmpd') {
       if (!shakaPlayerRef.current) return;
       const tracks = shakaPlayerRef.current.getVariantTracks();
@@ -360,10 +360,10 @@ const VideoPlayer = ({ url, type = 'm3u8', drmConfig = null }) => {
       console.log('Initializing HLS.js for HLS content');
       if (Hls.isSupported()) {
         const hls = new Hls({
-          debug: false,
-          enableWorker: true,
-          lowLatencyMode: true,
-          autoStartLoad: true,
+                debug: false,
+                enableWorker: true,
+                lowLatencyMode: true,
+                autoStartLoad: true,
           manifestLoadingMaxRetry: 2,
           manifestLoadingRetryDelay: 500,
           manifestLoadingMaxRetryTimeout: 5000,
@@ -410,9 +410,9 @@ const VideoPlayer = ({ url, type = 'm3u8', drmConfig = null }) => {
     }
 
     // Cleanup
-    return () => {
-      if (hlsRef.current) {
-        hlsRef.current.destroy();
+      return () => {
+        if (hlsRef.current) {
+          hlsRef.current.destroy();
       }
       if (shakaPlayerRef.current) {
         shakaPlayerRef.current.destroy();
@@ -705,7 +705,7 @@ const VideoPlayer = ({ url, type = 'm3u8', drmConfig = null }) => {
 
           {/* Quality Selection */}
           {qualities.length > 1 && (
-            <Menu>
+            <Menu placement="top" offset={[0, 4]} strategy="fixed">
               <MenuButton
                 as={Button}
                 size={buttonSize}
@@ -730,7 +730,10 @@ const VideoPlayer = ({ url, type = 'm3u8', drmConfig = null }) => {
               <MenuList
                 bg="var(--media-control-background)"
                 borderColor="whiteAlpha.200"
-                minW="auto"
+                maxH="200px"
+                overflowY="auto"
+                w="auto"
+                minW="150px"
                 sx={{
                   '&::-webkit-scrollbar': {
                     width: '4px',
@@ -742,6 +745,11 @@ const VideoPlayer = ({ url, type = 'm3u8', drmConfig = null }) => {
                     bg: 'whiteAlpha.300',
                     borderRadius: 'full',
                   },
+                  '@media screen and (max-width: 480px)': {
+                    minW: '120px',
+                    maxH: '180px',
+                    fontSize: 'sm',
+                  }
                 }}
               >
                 <MenuItem
@@ -749,6 +757,8 @@ const VideoPlayer = ({ url, type = 'm3u8', drmConfig = null }) => {
                   bg="transparent"
                   color="var(--media-button-icon-color)"
                   _hover={{ bg: 'var(--media-control-hover-background)' }}
+                  fontSize={{ base: 'sm', sm: 'md' }}
+                  h={{ base: '32px', sm: '40px' }}
                 >
                   Auto
                 </MenuItem>
@@ -756,10 +766,11 @@ const VideoPlayer = ({ url, type = 'm3u8', drmConfig = null }) => {
                   <MenuItem
                     key={quality.index}
                     onClick={() => handleQualityChange(quality.index)}
-                    fontSize={buttonSize === 'xs' ? 'sm' : 'md'}
+                    fontSize={{ base: 'sm', sm: 'md' }}
                     bg="transparent"
                     color="var(--media-button-icon-color)"
                     _hover={{ bg: 'var(--media-control-hover-background)' }}
+                    h={{ base: '32px', sm: '40px' }}
                   >
                     {quality.height}p ({Math.round(quality.bitrate / 1000)} kbps)
                   </MenuItem>
