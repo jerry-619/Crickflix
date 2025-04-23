@@ -18,6 +18,7 @@ import axios from 'axios';
 import MatchCard from '../components/MatchCard';
 import CategoryCard from '../components/CategoryCard';
 import { useSocket } from '../context/SocketContext';
+import SEO from '../components/SEO';
 
 const Home = () => {
   const [categories, setCategories] = useState([]);
@@ -72,9 +73,8 @@ const Home = () => {
   useEffect(() => {
     if (!socket) return;
 
-    // Match updates
+    // Socket event handlers...
     const handleMatchCreated = (newMatch) => {
-      console.log('Match event: Created');
       setMatches(prev => [newMatch, ...prev]);
       toast({
         title: 'New Match Added',
@@ -87,7 +87,6 @@ const Home = () => {
     };
 
     const handleMatchUpdated = (updatedMatch) => {
-      console.log('Match event: Updated');
       setMatches(prev => prev.map(match => 
         match._id === updatedMatch._id ? updatedMatch : match
       ));
@@ -102,7 +101,6 @@ const Home = () => {
     };
 
     const handleMatchDeleted = (matchId) => {
-      console.log('Match event: Deleted');
       setMatches(prev => prev.filter(match => match._id !== matchId));
       toast({
         title: 'Match Removed',
@@ -116,7 +114,6 @@ const Home = () => {
 
     // Category updates
     const handleCategoryCreated = (newCategory) => {
-      console.log('Category event: Created');
       setCategories(prev => [newCategory, ...prev]);
       toast({
         title: 'New Category Added',
@@ -129,7 +126,6 @@ const Home = () => {
     };
 
     const handleCategoryUpdated = (updatedCategory) => {
-      console.log('Category event: Updated');
       setCategories(prev => prev.map(category => 
         category._id === updatedCategory._id ? updatedCategory : category
       ));
@@ -144,7 +140,6 @@ const Home = () => {
     };
 
     const handleCategoryDeleted = (categoryId) => {
-      console.log('Category event: Deleted');
       setCategories(prev => prev.filter(category => category._id !== categoryId));
       toast({
         title: 'Category Removed',
@@ -174,6 +169,16 @@ const Home = () => {
       socket.off('categoryDeleted', handleCategoryDeleted);
     };
   }, [socket, toast]);
+
+  // SEO data
+  const seoData = {
+    title: 'CrickFlix - Watch Live Cricket Streaming Online Free in HD',
+    description: 'Watch live cricket matches online for free in HD quality. Stream IPL, World Cup, T20, Test matches and more. Get access to exclusive cricket content and live streaming.',
+    keywords: 'live cricket streaming, watch cricket online, IPL live, cricket match today, HD cricket stream, free cricket streaming',
+    ogTitle: 'CrickFlix - #1 Free Cricket Streaming Platform',
+    ogDescription: 'Watch live cricket matches in HD quality. Stream IPL, international matches, and more for free!',
+    hiddenH1: 'Watch Live Cricket Streaming on CrickFlix - Your Ultimate Cricket Destination'
+  };
 
   if (loading) {
     return (
@@ -206,21 +211,33 @@ const Home = () => {
   }
 
   return (
-    <Box minH="calc(100vh - 64px)" bg={bgColor} py={8}>
-      <Container maxW="container.xl">
-        <Heading mb={8} color={headingColor}>Categories</Heading>
-        <SimpleGrid columns={{ base: 1, md: 2, lg: 3 }} spacing={6} mb={12}>
-          {categories.map((category) => (
-            <CategoryCard key={category._id} category={category} />
-          ))}
-        </SimpleGrid>
+    <Box minH="calc(100vh - 64px)" bg={bgColor}>
+      <SEO {...seoData} />
+      
+      <Container maxW="container.xl" py={8}>
+        {/* Categories Section */}
+        <Box mb={12}>
+          <Heading mb={8} color={headingColor} size="xl">
+            Categories
+          </Heading>
+          <SimpleGrid columns={{ base: 1, md: 2, lg: 3 }} spacing={6}>
+            {categories.map((category) => (
+              <CategoryCard key={category._id} category={category} />
+            ))}
+          </SimpleGrid>
+        </Box>
 
-        <Heading mb={8} color={headingColor}>Latest Matches</Heading>
-        <SimpleGrid columns={{ base: 1, md: 2, lg: 3 }} spacing={6}>
-          {matches.map((match) => (
-            <MatchCard key={match._id} match={match} />
-          ))}
-        </SimpleGrid>
+        {/* Matches Section */}
+        <Box>
+          <Heading mb={8} color={headingColor} size="xl">
+            Latest Matches
+          </Heading>
+          <SimpleGrid columns={{ base: 1, md: 2, lg: 3 }} spacing={6}>
+            {matches.map((match) => (
+              <MatchCard key={match._id} match={match} />
+            ))}
+          </SimpleGrid>
+        </Box>
       </Container>
     </Box>
   );
