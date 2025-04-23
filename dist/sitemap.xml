@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+  
+    <url>
+      <loc>https://crickflix.vercel.app/</loc>
+      <lastmod>2025-04-23T11:29:48.601Z</lastmod>
+      <changefreq>daily</changefreq>
+      <priority>1.0</priority>
+    </url>
+    <url>
+      <loc>https://crickflix.vercel.app/blogs</loc>
+      <lastmod>2025-04-23T11:29:48.601Z</lastmod>
+      <changefreq>daily</changefreq>
+      <priority>0.8</priority>
+    </url>
+    <url>
+      <loc>https://crickflix.vercel.app/help</loc>
+      <lastmod>2025-04-23T11:29:48.601Z</lastmod>
+      <changefreq>daily</changefreq>
+      <priority>0.8</priority>
+    </url>
+    <url>
+      <loc>https://crickflix.vercel.app/matches</loc>
+      <lastmod>2025-04-23T11:29:48.601Z</lastmod>
+      <changefreq>daily</changefreq>
+      <priority>0.8</priority>
+    </url>
+    <url>
+      <loc>https://crickflix.vercel.app/schedule</loc>
+      <lastmod>2025-04-23T11:29:48.601Z</lastmod>
+      <changefreq>daily</changefreq>
+      <priority>0.8</priority>
+    </url>
+    <url>
+      <loc>https://crickflix.vercel.app/live</loc>
+      <lastmod>2025-04-23T11:29:48.601Z</lastmod>
+      <changefreq>daily</changefreq>
+      <priority>0.8</priority>
+    </url>
+    <url>
+      <loc>https://crickflix.vercel.app/about</loc>
+      <lastmod>2025-04-23T11:29:48.601Z</lastmod>
+      <changefreq>daily</changefreq>
+      <priority>0.8</priority>
+    </url>
+</urlset>

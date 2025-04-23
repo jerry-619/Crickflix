@@ -16,6 +16,7 @@ const SEO = ({
   const TITLE_MAX_LENGTH = 60;
   const DESC_MAX_LENGTH = 160;
   const KEYWORDS_MAX_LENGTH = 200;
+  const DOMAIN = 'https://crickflix.in';
 
   // Truncate functions
   const truncateText = (text, maxLength) => {
@@ -29,9 +30,14 @@ const SEO = ({
   const formattedKeywords = truncateText(keywords, KEYWORDS_MAX_LENGTH);
 
   // Default values
-  const defaultTitle = 'CrickFlix - Live Cricket Streaming';
-  const defaultDescription = 'Watch live cricket matches online for free. Stream IPL, World Cup, and international cricket matches in HD quality.';
-  const defaultKeywords = 'cricket streaming, live cricket, watch cricket online, cricket live stream, IPL live';
+  const defaultTitle = 'CrickFlix - Live Cricket Streaming | Watch Cricket Online';
+  const defaultDescription = 'Watch live cricket matches online for free at CrickFlix. Stream IPL, World Cup, and international cricket matches in HD quality. Best cricket streaming platform in India.';
+  const defaultKeywords = 'cricket streaming, live cricket, watch cricket online, cricket live stream, IPL live, cricket streaming india, live cricket match today';
+  const defaultImage = `${DOMAIN}/og-image.jpg`;
+
+  // Generate full URLs
+  const currentUrl = canonicalUrl ? `${DOMAIN}${canonicalUrl}` : window.location.href.replace(window.location.origin, DOMAIN);
+  const imageUrl = ogImage ? `${DOMAIN}${ogImage}` : defaultImage;
 
   return (
     <>
@@ -42,29 +48,57 @@ const SEO = ({
         <meta name="description" content={formattedDesc || defaultDescription} />
         <meta name="keywords" content={formattedKeywords || defaultKeywords} />
 
+        {/* Language and Region */}
+        <meta property="og:locale" content="en_IN" />
+        <link rel="alternate" href={currentUrl} hrefLang="en-in" />
+        <meta name="geo.region" content="IN" />
+        <meta name="geo.position" content="20.5937;78.9629" />
+        <meta name="ICBM" content="20.5937, 78.9629" />
+
         {/* Open Graph / Facebook */}
         <meta property="og:type" content="website" />
-        <meta property="og:url" content={canonicalUrl || window.location.href} />
+        <meta property="og:url" content={currentUrl} />
+        <meta property="og:site_name" content="CrickFlix" />
         <meta property="og:title" content={ogTitle || formattedTitle || defaultTitle} />
         <meta property="og:description" content={ogDescription || formattedDesc || defaultDescription} />
-        {ogImage && <meta property="og:image" content={ogImage} />}
+        <meta property="og:image" content={imageUrl} />
+        <meta property="og:image:width" content="1200" />
+        <meta property="og:image:height" content="630" />
 
         {/* Twitter */}
-        <meta property="twitter:card" content="summary_large_image" />
-        <meta property="twitter:url" content={canonicalUrl || window.location.href} />
-        <meta property="twitter:title" content={ogTitle || formattedTitle || defaultTitle} />
-        <meta property="twitter:description" content={ogDescription || formattedDesc || defaultDescription} />
-        {ogImage && <meta property="twitter:image" content={ogImage} />}
+        <meta name="twitter:card" content="summary_large_image" />
+        <meta name="twitter:url" content={currentUrl} />
+        <meta name="twitter:title" content={ogTitle || formattedTitle || defaultTitle} />
+        <meta name="twitter:description" content={ogDescription || formattedDesc || defaultDescription} />
+        <meta name="twitter:image" content={imageUrl} />
+
+        {/* Mobile Specific */}
+        <meta name="format-detection" content="telephone=no" />
+        <meta name="apple-mobile-web-app-capable" content="yes" />
+        <meta name="apple-mobile-web-app-status-bar-style" content="black" />
+        <meta name="apple-mobile-web-app-title" content="CrickFlix" />
+        <meta name="application-name" content="CrickFlix" />
+        <meta name="theme-color" content="#1A202C" />
 
         {/* Canonical URL */}
-        {canonicalUrl && <link rel="canonical" href={canonicalUrl} />}
+        <link rel="canonical" href={currentUrl} />
 
         {/* Structured Data */}
         {structuredData && (
           <script type="application/ld+json">
-            {JSON.stringify(structuredData)}
+            {JSON.stringify({
+              "@context": "https://schema.org",
+              "@type": "WebSite",
+              "url": DOMAIN,
+              "name": "CrickFlix",
+              "description": defaultDescription,
+              ...structuredData
+            })}
           </script>
         )}
+
+        {/* Verification Tags */}
+        <meta name="google-site-verification" content="YOUR_GOOGLE_VERIFICATION_CODE" />
       </Helmet>
 
       {/* Hidden H1 for SEO - Only render if hiddenH1 is provided */}

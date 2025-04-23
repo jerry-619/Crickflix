@@ -10,6 +10,7 @@ import TelegramPopup from './components/TelegramPopup';
 import SEO from './components/SEO';
 import { Analytics } from '@vercel/analytics/react';
 import AnnouncementBar from './components/AnnouncementBar';
+import GoogleTagManager from './components/GoogleTagManager';
 
 const App = () => {
   
@@ -18,6 +19,7 @@ const App = () => {
       <ChakraProvider theme={theme}>
         <SocketProvider>
           <Router>
+            <GoogleTagManager />
             <Flex direction="column" minH="100vh" bg="gray.900">
               <SEO />
               <Navbar />
