@@ -360,10 +360,10 @@ const VideoPlayer = ({ url, type = 'm3u8', drmConfig = null }) => {
       console.log('Initializing HLS.js for HLS content');
       if (Hls.isSupported()) {
         const hls = new Hls({
-                debug: false,
-                enableWorker: true,
-                lowLatencyMode: true,
-                autoStartLoad: true,
+          debug: false,
+          enableWorker: true,
+          lowLatencyMode: true,
+          autoStartLoad: true,
           manifestLoadingMaxRetry: 2,
           manifestLoadingRetryDelay: 500,
           manifestLoadingMaxRetryTimeout: 5000,
@@ -380,6 +380,7 @@ const VideoPlayer = ({ url, type = 'm3u8', drmConfig = null }) => {
         // Handle HLS events
         hls.on(Hls.Events.MEDIA_ATTACHED, () => {
           console.log('HLS.js media attached');
+          hls.loadSource(url);
         });
 
         hls.on(Hls.Events.MANIFEST_PARSED, (event, data) => {
@@ -389,20 +390,50 @@ const VideoPlayer = ({ url, type = 'm3u8', drmConfig = null }) => {
             height: level.height,
             bitrate: level.bitrate
           })));
+          
+          // Attempt autoplay after manifest is parsed
+          video.play().catch(error => {
+            console.log('Autoplay failed:', error);
+            if (error.name === 'NotAllowedError') {
+              // Show unmute overlay
+              setIsMuted(true);
+            }
+          });
         });
 
         hls.on(Hls.Events.ERROR, (event, data) => {
           if (data.fatal) {
             console.error('Fatal HLS error:', data);
-            setError(data);
+            switch(data.type) {
+              case Hls.ErrorTypes.NETWORK_ERROR:
+                console.log('Network error, attempting to recover...');
+                hls.startLoad();
+                break;
+              case Hls.ErrorTypes.MEDIA_ERROR:
+                console.log('Media error, attempting to recover...');
+                hls.recoverMediaError();
+                break;
+              default:
+                console.error('Unrecoverable error');
+                setError(data);
+                break;
+            }
           }
         });
 
-        hls.loadSource(url);
+        // Attach media first
         hls.attachMedia(video);
       } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
-        // Fallback to native HLS for Safari
+        // For Safari - native HLS support
         video.src = url;
+        video.addEventListener('loadedmetadata', () => {
+          video.play().catch(error => {
+            console.log('Safari autoplay failed:', error);
+            if (error.name === 'NotAllowedError') {
+              setIsMuted(true);
+            }
+          });
+        });
       }
     } else if (type === 'iframe') {
       // Iframe handling remains unchanged
