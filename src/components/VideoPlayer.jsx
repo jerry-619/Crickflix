@@ -173,12 +173,8 @@ const VideoPlayer = ({ url, type = 'm3u8', drmConfig = null }) => {
             fuzzFactor: 0.5,
             timeout: 30000, // 30 seconds timeout
           },
-          // Small segments for live streaming
-          smallGapLimit: 0.5,
-          jumpLargeGaps: true,
-          // Add support for more URI schemes
-          useNativeHlsOnSafari: true,
-          allowInsecureSchemes: true
+          // Remove deprecated options
+          useNativeHlsOnSafari: true
         },
         abr: {
           enabled: true,
@@ -196,9 +192,7 @@ const VideoPlayer = ({ url, type = 'm3u8', drmConfig = null }) => {
             timeout: 30000
           },
           dash: {
-            defaultPresentationDelay: 10,
-            ignoreSuggestedPresentationDelay: true,
-            // Enable auto CORS handling
+            // Remove unsupported options
             xlinkFailGracefully: true,
             ignoreMinBufferTime: true,
             autoCorrectDrift: true
@@ -218,11 +212,9 @@ const VideoPlayer = ({ url, type = 'm3u8', drmConfig = null }) => {
             clearKeys: {
               [drmConfig.keyId]: drmConfig.key
             },
-            // Remove advanced configuration as it's not needed for ClearKey
-            servers: {},
-            advanced: {},
-            delayLicenseRequestUntilPlayed: false,
-            parseInbandPsshEnabled: true
+            servers: {
+              'org.w3.clearkey': 'https://clearkey-license-server.com/license'
+            }
           }
         });
       }
