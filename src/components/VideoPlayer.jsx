@@ -51,9 +51,24 @@ const VideoPlayer = ({ url, type = 'm3u8', drmConfig = null }) => {
   const [error, setError] = useState(null);
 
   const handleQualityChange = (levelIndex) => {
-    if (!hlsRef.current) return;
-    hlsRef.current.currentLevel = levelIndex;
-    setCurrentQuality(levelIndex);
+    if (type === 'm3u8') {
+      if (!hlsRef.current) return;
+      hlsRef.current.currentLevel = levelIndex;
+      setCurrentQuality(levelIndex);
+    } else if (type === 'dashmpd') {
+      if (!shakaPlayerRef.current) return;
+      const tracks = shakaPlayerRef.current.getVariantTracks();
+      
+      if (levelIndex === -1) {
+        // Auto quality
+        shakaPlayerRef.current.configure('abr.enabled', true);
+      } else {
+        // Manual quality selection
+        shakaPlayerRef.current.configure('abr.enabled', false);
+        shakaPlayerRef.current.selectVariantTrack(tracks[levelIndex]);
+      }
+      setCurrentQuality(levelIndex);
+    }
   };
 
   const handleAudioChange = (trackIndex) => {
@@ -271,12 +286,31 @@ const VideoPlayer = ({ url, type = 'm3u8', drmConfig = null }) => {
         const tracks = player.getVariantTracks();
         console.log('Available video tracks:', tracks);
 
+        // Set up quality options for the menu
+        const qualityLevels = tracks.map((track, index) => ({
+          index,
+          height: track.height || 0,
+          bitrate: track.bandwidth,
+          label: track.height ? `${track.height}p` : `${Math.round(track.bandwidth / 1000)} kbps`
+        }));
+        setQualities(qualityLevels);
+
         // Select the highest bandwidth variant by default
         tracks.sort((a, b) => b.bandwidth - a.bandwidth);
         if (tracks.length > 0) {
           player.configure('abr.enabled', false);
           player.selectVariantTrack(tracks[0]);
+          setCurrentQuality(0); // Set initial quality selection
         }
+
+        // Add track change handler
+        player.addEventListener('variantchanged', () => {
+          const activeTrack = player.getVariantTracks().find(t => t.active);
+          if (activeTrack) {
+            const activeIndex = tracks.findIndex(t => t.id === activeTrack.id);
+            setCurrentQuality(activeIndex);
+          }
+        });
 
         // Attempt autoplay
         try {
