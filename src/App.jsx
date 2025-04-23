@@ -10,16 +10,13 @@ import TelegramPopup from './components/TelegramPopup';
 import SEO from './components/SEO';
 import { Analytics } from '@vercel/analytics/react';
 import AnnouncementBar from './components/AnnouncementBar';
-import GoogleTagManager from './components/GoogleTagManager';
 
 const App = () => {
-  
   return (
     <HelmetProvider>
       <ChakraProvider theme={theme}>
         <SocketProvider>
           <Router>
-            <GoogleTagManager />
             <Flex direction="column" minH="100vh" bg="gray.900">
               <SEO />
               <Navbar />
@@ -28,7 +25,7 @@ const App = () => {
                 <AppRoutes />
               </Box>
               <Footer />
-               {/* Mobile Bottom Spacer - Only visible on mobile to prevent footer overlap */}
+              {/* Mobile Bottom Spacer - Only visible on mobile to prevent footer overlap */}
               <Box display={{ base: 'block', md: 'none' }} h="70px" />
               <TelegramPopup />
             </Flex>

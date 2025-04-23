@@ -29,15 +29,16 @@
     "plyr": "^3.7.8",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
+    "react-gtm-module": "^2.0.11",
     "react-helmet-async": "^2.0.5",
     "react-icons": "^5.5.0",
     "react-player": "^2.14.0",
     "react-router-dom": "^6.22.1",
+    "shaka-player": "^4.7.0",
     "sharp": "^0.33.5",
     "socket.io": "^4.8.1",
     "socket.io-client": "^4.8.1",
-    "video.js": "^8.22.0",
-    "shaka-player": "^4.7.0"
+    "video.js": "^8.22.0"
   },
   "devDependencies": {
     "@eslint/js": "^9.21.0",
