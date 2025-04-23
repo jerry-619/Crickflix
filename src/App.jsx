@@ -9,6 +9,7 @@ import { SocketProvider } from './context/SocketContext';
 import TelegramPopup from './components/TelegramPopup';
 import SEO from './components/SEO';
 import { Analytics } from '@vercel/analytics/react';
+import AnnouncementBar from './components/AnnouncementBar';
 
 const App = () => {
   
@@ -20,6 +21,7 @@ const App = () => {
             <Flex direction="column" minH="100vh" bg="gray.900">
               <SEO />
               <Navbar />
+              <AnnouncementBar />
               <Box flex="1">
                 <AppRoutes />
               </Box>

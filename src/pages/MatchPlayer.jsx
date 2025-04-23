@@ -440,7 +440,11 @@ const MatchPlayer = () => {
             </Box>
           ) : (
             <Box w="100%">
-              <VideoPlayer url={selectedSource.url} />
+              <VideoPlayer 
+                url={selectedSource.url} 
+                type={selectedSource.type}
+                drmConfig={selectedSource.type === 'dashmpd' ? selectedSource.drmConfig : null}
+              />
             </Box>
           ))}
         </Box>

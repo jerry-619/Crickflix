@@ -36,7 +36,8 @@
     "sharp": "^0.33.5",
     "socket.io": "^4.8.1",
     "socket.io-client": "^4.8.1",
-    "video.js": "^8.22.0"
+    "video.js": "^8.22.0",
+    "shaka-player": "^4.7.0"
   },
   "devDependencies": {
     "@eslint/js": "^9.21.0",
