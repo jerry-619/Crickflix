@@ -15,6 +15,10 @@ import {
   AlertDescription,
   VStack,
   Text,
+  useColorModeValue,
+  IconButton,
+  Spinner,
+  Center,
 } from '@chakra-ui/react';
 import { ChevronDownIcon } from '@chakra-ui/icons';
 import 'media-chrome';
@@ -49,6 +53,10 @@ const VideoPlayer = ({ url, type = 'm3u8', drmConfig = null }) => {
   const [isMuted, setIsMuted] = useState(true);
 
   const [error, setError] = useState(null);
+
+  const [isBuffering, setIsBuffering] = useState(type === 'dashmpd');
+
+  let errorCount = 0;
 
   const handleQualityChange = (levelIndex) => {
     if (type === 'm3u8') {
@@ -149,7 +157,7 @@ const VideoPlayer = ({ url, type = 'm3u8', drmConfig = null }) => {
       await player.attach(video);
 
       // Add error handler with detailed logging
-      player.addEventListener('error', (event) => {
+      player.addEventListener('error', async (event) => {
         const error = event.detail;
         console.error('Shaka error details:', {
           code: error.code,
@@ -158,6 +166,39 @@ const VideoPlayer = ({ url, type = 'm3u8', drmConfig = null }) => {
           message: error.message,
           data: error.data
         });
+
+        // Handle Error 4038 specifically
+        if (error.code === 4038) {
+          errorCount++;
+          console.log('Network request failed (Error 4038), attempting to reload stream...');
+          try {
+            // Wait for 5-6 seconds before unloading
+            await new Promise(resolve => setTimeout(resolve, 2000));
+            // Check if error count is 2 or more
+            if (errorCount >= 2) {
+              await player.unload();
+              await player.load(url);
+              console.log('Stream reloaded successfully after Error 4038');
+              errorCount = 0;
+              console.log(errorCount);
+            }
+            
+            // For live streams, seek to live edge after reload
+            if (videoRef.current) {
+              await videoRef.current.play();
+              // Check if stream is live and seek to live edge
+              if (player.isLive && player.isLive()) {
+                const seekRange = player.seekRange();
+                if (seekRange) {
+                  player.seek(seekRange.end);
+                }
+              }
+            }
+            return;
+          } catch (reloadError) {
+            console.error('Failed to reload stream:', reloadError);
+          }
+        }
 
         // Handle UNSUPPORTED_SCHEME error specifically
         if (error.code === 1000) {
@@ -177,9 +218,9 @@ const VideoPlayer = ({ url, type = 'm3u8', drmConfig = null }) => {
       player.configure({
         streaming: {
           // Reduce buffering delays
-          bufferingGoal: 60,
-          rebufferingGoal: 20,
-          bufferBehind: 30,
+          bufferingGoal: 6,
+          rebufferingGoal: 2,
+          bufferBehind: 0,
           // Aggressive retry settings
           retryParameters: {
             maxAttempts: 5,
@@ -402,24 +443,24 @@ const VideoPlayer = ({ url, type = 'm3u8', drmConfig = null }) => {
         });
 
         hls.on(Hls.Events.ERROR, (event, data) => {
-          if (data.fatal) {
+        if (data.fatal) {
             console.error('Fatal HLS error:', data);
             switch(data.type) {
-              case Hls.ErrorTypes.NETWORK_ERROR:
+            case Hls.ErrorTypes.NETWORK_ERROR:
                 console.log('Network error, attempting to recover...');
                 hls.startLoad();
-                break;
-              case Hls.ErrorTypes.MEDIA_ERROR:
+              break;
+            case Hls.ErrorTypes.MEDIA_ERROR:
                 console.log('Media error, attempting to recover...');
-                hls.recoverMediaError();
-                break;
-              default:
+              hls.recoverMediaError();
+              break;
+            default:
                 console.error('Unrecoverable error');
                 setError(data);
-                break;
-            }
+              break;
           }
-        });
+        }
+      });
 
         // Attach media first
         hls.attachMedia(video);
@@ -635,6 +676,23 @@ const VideoPlayer = ({ url, type = 'm3u8', drmConfig = null }) => {
       return () => video.removeEventListener('click', handleClick);
     }
   }, [isMuted]);
+
+  useEffect(() => {
+    if (!videoRef.current || type !== 'dashmpd') return;
+    
+    const handleRateChange = () => {
+      const currentRate = videoRef.current.playbackRate;
+      setIsBuffering(currentRate === 0);
+    };
+
+    videoRef.current.addEventListener('ratechange', handleRateChange);
+    
+    return () => {
+      if (videoRef.current) {
+        videoRef.current.removeEventListener('ratechange', handleRateChange);
+      }
+    };
+  }, [type]);
 
   return (
     <Box
@@ -930,7 +988,7 @@ const VideoPlayer = ({ url, type = 'm3u8', drmConfig = null }) => {
         )}
 
         {/* Error Display */}
-        {error && (
+        {/* {error && (
           <Box
             position="absolute"
             top="0"
@@ -953,6 +1011,26 @@ const VideoPlayer = ({ url, type = 'm3u8', drmConfig = null }) => {
               </Box>
             </Alert>
           </Box>
+        )} */}
+
+        {isBuffering && type === 'dashmpd' && (
+          <Center
+            position="absolute"
+            top="0"
+            left="0"
+            right="0"
+            bottom="0"
+            bg="blackAlpha.600"
+            zIndex="1"
+          >
+            <Spinner
+              thickness="4px"
+              speed="0.65s"
+              emptyColor="gray.200"
+              color="blue.500"
+              size="xl"
+            />
+          </Center>
         )}
       </media-controller>
     </Box>
